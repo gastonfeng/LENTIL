@@ -1,0 +1,179 @@
+(ExpressProject "transformer"
+  (ProjectVersion "19981106")
+  (ProjectType "Analog or A/D Mixed Mode")
+  (Folder "Design Resources"
+    (Folder "Library"
+      (Sort User)
+      (File "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\analog.olb"
+        (Type "Schematic Library")
+        (DisplayName "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\analog.olb"))
+      (File "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\bipolar.olb"
+        (Type "Schematic Library")
+        (DisplayName
+           "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\bipolar.olb"))
+      (File "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\diode.olb"
+        (Type "Schematic Library")
+        (DisplayName "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\diode.olb"))
+      (File "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\magnetic.olb"
+        (Type "Schematic Library")
+        (DisplayName
+           "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\magnetic.olb"))
+      (File "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\pwrmos.olb"
+        (Type "Schematic Library")
+        (DisplayName "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\pwrmos.olb"))
+      (File "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\source.olb"
+        (Type "Schematic Library")
+        (DisplayName "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\source.olb"))
+      (File "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\sourcstm.olb"
+        (Type "Schematic Library")
+        (DisplayName
+           "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\sourcstm.olb"))
+      (File "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\special.olb"
+        (Type "Schematic Library")
+        (DisplayName
+           "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\special.olb"))
+      (File "E:\my_lib\TRANSFORMER.olb"
+        (Type "Schematic Library")
+        (DisplayName "E:\my_lib\TRANSFORMER.olb")))
+    (NoModify)
+    (File ".\transformer.dsn"
+      (Type "Schematic Design"))
+    (BuildFileAddedOrDeleted "x")
+    (CompileFileAddedOrDeleted "x")
+    (DRC_Scope "0")
+    (DRC_Action "1")
+    (DRC_Create_Warnings "FALSE")
+    (DRC_Check_Ports "FALSE")
+    (DRC_Check_Off-Page_Connectors "FALSE")
+    (DRC_Identical_References "TRUE")
+    (DRC_Type_Mismatch "TRUE")
+    (DRC_Report_Ports_and_Off-page_Connectors "FALSE")
+    (DRC_SDT_Compatibility "FALSE")
+    (DRC_Report_Off-grid_Objects "FALSE")
+    (DRC_Check_Unconnected_Nets "TRUE")
+    (DRC_Report_Netnames "FALSE")
+    (DRC_View_Output "FALSE")
+    (DRC_Report_File "D:\PRODUCT\LENTIL\SIM\TRANSFORMER.DRC")
+    (ANNOTATE_Scope "0")
+    (ANNOTATE_Mode "1")
+    (ANNOTATE_Action "0")
+    (ANNOTATE_Reset_References_to_1 "FALSE")
+    (ANNOTATE_No_Page_Number_Change "FALSE")
+    (ANNOTATE_Property_Combine "{Value}{Source Package}"))
+  (Folder "Outputs"
+    (File ".\transformer-schematic1.net"
+      (Type "Report")))
+  (Folder "PSpice Resources"
+    (Folder "Simulation Profiles"
+      (File.PSpice.{09528990-3187-11D2-BC7B-00A0C90CBF91}
+         ".\transformer-schematic1-3525.sim"
+        (DisplayName "SCHEMATIC1-3525")
+        (Type "PSpice Profile"))
+      (ActiveProfile ".\transformer-schematic1-3525.sim"))
+    (Folder "Model Libraries"
+      (Sort User))
+    (Folder "Stimulus Files"
+      (Sort User))
+    (Folder "Include Files"
+      (Sort User)))
+  (DefaultLibraryBrowseDirectory "library\PSpice")
+  (PartMRUSelector
+    (R
+      (FullPartName "R.Normal")
+      (LibraryName "C:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\ANALOG.OLB")
+      (DeviceIndex "0"))
+    (C
+      (FullPartName "C.Normal")
+      (LibraryName "C:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\ANALOG.OLB")
+      (DeviceIndex "0"))
+    (MBR2540
+      (FullPartName "MBR2540.Normal")
+      (LibraryName "C:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\DIODE.OLB")
+      (DeviceIndex "0"))
+    (L
+      (FullPartName "L.Normal")
+      (LibraryName "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\ANALOG.OLB")
+      (DeviceIndex "0"))
+    (HER305
+      (FullPartName "HER305.Normal")
+      (LibraryName "C:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\DISCRETE.OLB")
+      (DeviceIndex "0"))
+    (C
+      (FullPartName "C.Normal")
+      (LibraryName "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\ANALOG.OLB")
+      (DeviceIndex "0"))
+    (SG1525
+      (FullPartName "SG1525.Normal")
+      (LibraryName "C:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\SWIT_REG.OLB")
+      (DeviceIndex "0"))
+    (EI33
+      (FullPartName "EI33.Normal")
+      (LibraryName "D:\MY_LIB\ORCAD.OLB")
+      (DeviceIndex "0"))
+    (K135T050_3E2A
+      (FullPartName "K135T050_3E2A.Normal")
+      (LibraryName "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\MAGNETIC.OLB")
+      (DeviceIndex "0"))
+    (MTM60N06
+      (FullPartName "MTM60N06.Normal")
+      (LibraryName "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\TRANSISTOR.OLB")
+      (DeviceIndex "0"))
+    (K_Linear
+      (FullPartName "K_Linear.Normal")
+      (LibraryName "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\ANALOG.OLB")
+      (DeviceIndex "0"))
+    (L
+      (FullPartName "L.Normal")
+      (LibraryName "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\ANALOG.OLB")
+      (DeviceIndex "0"))
+    ("TRNSFMR T2112"
+      (FullPartName "TRNSFMR T2112.Normal")
+      (LibraryName "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\DISCRETE.OLB")
+      (DeviceIndex "0"))
+    ("TRANSFORMER STEPUP"
+      (FullPartName "TRANSFORMER STEPUP.Normal")
+      (LibraryName "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\DISCRETE.OLB")
+      (DeviceIndex "0"))
+    ("TRANSFORMER CT"
+      (FullPartName "TRANSFORMER CT.Normal")
+      (LibraryName "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\DISCRETE.OLB")
+      (DeviceIndex "0"))
+    (K1041T060_3B7
+      (FullPartName "K1041T060_3B7.Normal")
+      (LibraryName "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\MAGNETIC.OLB")
+      (DeviceIndex "0"))
+    (IRFZ44
+      (FullPartName "IRFZ44.Normal")
+      (LibraryName "E:\PROGRAM FILES\ORCAD\CAPTURE\LIBRARY\PSPICE\PWRMOS.OLB")
+      (DeviceIndex "0")))
+  (GlobalState
+    (FileView
+      (Path "Design Resources")
+      (Path "Design Resources" "D:\product\lentil\sim\transformer.dsn")
+      (Path "Design Resources" "D:\product\lentil\sim\transformer.dsn"
+         "SCHEMATIC1")
+      (Path "Design Resources" "Library")
+      (Path "Outputs")
+      (Path "PSpice Resources")
+      (Path "PSpice Resources" "Model Libraries")
+      (Path "PSpice Resources" "Simulation Profiles")
+      (Select "Design Resources" "D:\product\lentil\sim\transformer.dsn"
+         "SCHEMATIC1" "PAGE1"))
+    (HierarchyView)
+    (Doc
+      (Type "COrCapturePMDoc")
+      (Frame
+        (Placement "44 0 1 0 455 -4 -23 0 217 0 475"))
+      (Tab 0))
+    (Doc
+      (Type "COrSchematicDoc")
+      (Frame
+        (Placement "44 2 3 -1 -1 -4 -23 66 892 66 515")
+        (Scroll "603 72")
+        (Zoom "176")
+        (Occurrence "/"))
+      (Path "D:\PRODUCT\LENTIL\SIM\TRANSFORMER.DSN")
+      (Schematic "SCHEMATIC1")
+      (Page "PAGE1")))
+  (LastUsedLibraryBrowseDirectory
+     "C:\Program Files\OrCAD\CAPTURE\LIBRARY\PSPICE"))

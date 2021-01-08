@@ -1,0 +1,1354 @@
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ;       150W square waveform inverter
+                      00002 ;       filename:lenti4.asm
+                      00003 ;       author:Fengjiantao
+                      00004 ;       Email:fjt@yeah.net
+                      00005 ;       begin from:1999.10.10
+                      00006 
+                      00007         include "e:\comppic\p16c71x.inc"
+  00000000            00001 W        EQU     0
+  00000001            00002 F        EQU     1
+                      00003 
+                      00004 ; Register Files
+                      00005 
+  00000000            00006 INDF     EQU     0
+  00000001            00007 TMR0     EQU     1
+  00000002            00008 PCL      EQU     2
+  00000003            00009 STATUS   EQU     3
+  00000004            00010 FSR      EQU     4
+  00000005            00011 PORTA    EQU     5
+  00000006            00012 PORTB    EQU     6
+  0000000A            00013 PCLATH   EQU     0AH
+  0000000B            00014 INTCON   EQU     0BH
+  0000000C            00015 PIR1     EQU     0CH
+  0000001E            00016 ADRES    EQU     1EH
+  0000001F            00017 ADCON0   EQU     1FH
+                      00018 
+  00000081            00019 OPTION_  EQU     81H
+  00000085            00020 TRISA    EQU     85H
+  00000086            00021 TRISB    EQU     86H
+  0000008C            00022 PIE1     EQU     8CH
+  0000008E            00023 PCON     EQU     8EH
+  0000009F            00024 ADCON1   EQU     9FH
+                      00025 
+                      00026 ; STATUS Bits
+                      00027 
+  00000007            00028 IRP      EQU     7
+  00000006            00029 RP1      EQU     6
+  00000005            00030 RP0      EQU     5
+  00000004            00031 NOT_TO   EQU     4
+  00000003            00032 NOT_PD   EQU     3
+  00000002            00033 Z        EQU     2
+  00000001            00034 DC       EQU     1
+  00000000            00035 C        EQU     0
+                      00036 
+                      00037 ; INTCON Bits
+                      00038 
+  00000007            00039 GIE      EQU     7
+  00000006            00040 PEIE     EQU     6
+  00000005            00041 T0IE     EQU     5
+  00000004            00042 INTE     EQU     4
+  00000003            00043 RBIE     EQU     3
+  00000002            00044 T0IF     EQU     2
+  00000001            00045 INTF     EQU     1
+  00000000            00046 RBIF     EQU     0
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00047 
+                      00048 ; PIR1 Bits
+                      00049 
+  00000006            00050 ADIF     EQU     6
+                      00051 
+                      00052 ; ADCON0 Bits
+                      00053 
+  00000007            00054 ADCS1    EQU     7
+  00000006            00055 ADCS0    EQU     6
+  00000005            00056 CHS2     EQU     5
+  00000004            00057 CHS1     EQU     4
+  00000003            00058 CHS0     EQU     3
+  00000002            00059 GO       EQU     2
+  00000002            00060 NOT_DONE EQU     2
+  00000002            00061 GO_DONE  EQU     2
+  00000000            00062 ADON     EQU     0
+                      00063 
+                      00064 ; OPTION Bits
+                      00065 
+  00000007            00066 NOT_RBPU EQU     7
+  00000006            00067 INTEDG   EQU     6
+  00000005            00068 T0CS     EQU     5
+  00000004            00069 T0SE     EQU     4
+  00000003            00070 PSA      EQU     3
+  00000002            00071 PS2      EQU     2
+  00000001            00072 PS1      EQU     1
+  00000000            00073 PS0      EQU     0
+                      00074 
+                      00075 ; PIE1 Bits
+                      00076 
+  00000006            00077 ADIE     EQU     6
+                      00078 
+                      00079 ; PCON Bits
+                      00080 
+  00000002            00081 NOT_MPE  EQU     2
+  00000001            00082 NOT_POR  EQU     1
+  00000000            00083 NOT_BO   EQU     0
+  00000000            00084 NOT_BOR  EQU     0
+                      00085 
+                      00086 ; ADCON1 Bits
+                      00087 
+  00000001            00088 PCFG1    EQU     1
+  00000000            00089 PCFG0    EQU     0
+                      00008 
+                      00009 ;Constant definitions
+                      00010 ; PWM-module-constant
+  00000019            00011 PWMADJUSTVAL    equ 25
+  000000A2            00012 VOLTAGER        equ 162 ;Voltage request
+  000000B8            00013 LOWVOLTAGE      equ 184
+  000000A4            00014 OVER150         equ 164
+  00000089            00015 OVER125         equ 137
+  00000028            00016 KP              equ 40  ;Proportional gain
+  00000001            00017 KI              equ 1   ;Integral gain
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+  00000001            00018 KD              equ 1   ;Differential gain
+  0000001D            00019 PWMMAXVAL       equ 29
+  000000B0            00020 INTCONVAL       equ 0b0h ; set GIE, T0IE
+  0000004F            00021 OPTIONVAL       equ 4fh ; portB have pull-up, tmr0 int.
+                      00022 
+                      00023 
+                      00024 ;Register Equates
+                      00025 
+  0000000C            00026 HITIMES         equ 0ch
+  0000000D            00027 HI_             equ 0dh
+  0000000E            00028 LOTIMES         equ 0eh
+  0000000F            00029 LO_             equ 0fh
+  00000010            00030 TIMES           equ 10h
+  00000011            00031 STACKW          equ 11h ; stack to push/pop the W-register
+  00000012            00032 STACKS          equ 12h ; stack to push/pop the STATUS-reg
+  00000013            00033 LOWCOUNT        equ 13h ; Low Voltage counter
+  00000014            00034 COUNTER1        equ 14h ; counter2: input frequency
+  00000015            00035 count150        equ 15h;
+  00000016            00036 PWMMAX          equ 16h         ; register to support generating PWM
+  00000017            00037 count125        equ 17h;
+  00000018            00038 FLAG            equ 18h ;
+  00000019            00039 ERR             equ 19h ;
+  0000001A            00040 SUMLO           equ 1ah ;PROGRESSIVE SUM OF the PID terms
+  0000001B            00041 ACCUM           equ 1bh ;Error accumulator
+  0000001C            00042 ERR_O           equ 1ch         ;error history(last error)
+  0000001D            00043 VOLTAGEA        equ 1dh ;Voltage actual
+  0000001E            00044 mulcnd          equ 1eh ;8 bit multiplicand
+  0000001F            00045 mulplr          equ 1fh ;8 bit multiplier
+  00000020            00046 ACCaLO          equ 20h ;for the add routine
+  00000021            00047 ACCbLO          equ 21h ;
+  00000022            00048 H_byte          equ 22h ;High byte of the 16 bit result
+  00000023            00049 L_byte          equ 23h ;Low byte of the 16 bit result
+  00000024            00050 ACCaHI          equ 24h
+  00000025            00051 ACCbHI          equ 25h
+  00000026            00052 count           equ 26h ;Loop counter
+  00000027            00053 SUMHI           equ 27h ;High byte of the loop sum
+  00000028            00054 KEYPRESS        equ 28h ;KEY counter
+  00000029            00055 LOOPER          equ 29H;
+                      00056 
+  00000000            00057 polarity        equ 0
+  00000001            00058 ER_SGN          equ 1   ;Sign bit for the error in flag register
+  00000002            00059 AC_SGN          equ 2   ;Sign bit for the error accumulator
+  00000003            00060 DE_SGN          equ 3   ;Sign bit for DE/DT
+  00000004            00061 OER_SGN         equ 4   ;sign bit for the old error
+  00000005            00062 INT             equ 5
+                      00063 
+                      00064 
+                      00065 ;port A:
+  00000004            00066 EN3525          equ 4
+  0000000F            00067 TRISAVAL        equ 0Fh ; RA0-RA3: input;RA4:Output
+  00000000            00068 ADCON1VAL       equ 0 ; A0-A3 analog in
+  00000089            00069 ADCON0VAL       equ 89h ; fosc/32, channel 2
+  00000081            00070 ADCON0V0        equ 81h
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+  00000099            00071 ADCON0V3        equ 99h
+                      00072 
+                      00073 ;port B:
+  00000001            00074 LEDR            equ 1
+  00000002            00075 LEDG            equ 2
+  00000004            00076 PWMA            equ 4
+  00000005            00077 PWMB            equ 5
+  00000007            00078 KEY             equ 7
+  00000081            00079 TRISBVAL        equ 81h
+                      00080 
+                      00081 
+                      00082 ;Program entrance
+0000                  00083         org 0
+0000   2A77           00084         goto start
+                      00085 
+0004                  00086         org 0004
+0004   188B           00087         btfsc INTCON,INTF
+0005   28F0           00088         goto short
+0006   0091           00089         movwf STACKW
+0007   0E91           00090         swapf STACKW,F
+0008   0E03           00091         swapf STATUS,W
+0009   0092           00092         movwf STACKS
+000A   110B           00093         bcf INTCON,T0IF
+000B   0B90           00094         decfsz TIMES,F
+000C   280E           00095         goto ret1
+000D   2812           00096         goto pulse
+000E                  00097 ret1:
+000E   0E12           00098         swapf STACKS,W
+000F   0083           00099         movwf STATUS
+0010   0E11           00100         swapf STACKW,W
+0011   0009           00101         retfie
+0012                  00102 pulse:
+0012   1818           00103         btfsc FLAG,polarity
+0013   2881           00104         goto polarityb
+0014   1A06           00105         btfsc PORTB,PWMA
+0015   284B           00106         goto Lowpulse
+0016   090D           00107         comf HI_,w
+0017   0796           00108         addwf PWMMAX,f
+0018   1C03           00109         btfss STATUS,C
+0019   283F           00110         goto HIGHIMPINT
+001A   0816           00111         movf PWMMAX,w
+001B   0782           00112         addwf PCL,f
+001C   1606           00113         bsf PORTB,PWMA
+001D   1606           00114         bsf PORTB,PWMA
+001E   1606           00115         bsf PORTB,PWMA
+001F   1606           00116         bsf PORTB,PWMA
+0020   1606           00117         bsf PORTB,PWMA
+0021   1606           00118         bsf PORTB,PWMA
+0022   1606           00119         bsf PORTB,PWMA
+0023   1606           00120         bsf PORTB,PWMA
+0024   1606           00121         bsf PORTB,PWMA
+0025   1606           00122         bsf PORTB,PWMA
+0026   1606           00123         bsf PORTB,PWMA
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE  5
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0027   1606           00124         bsf PORTB,PWMA
+0028   1606           00125         bsf PORTB,PWMA
+0029   1606           00126         bsf PORTB,PWMA
+002A   1606           00127         bsf PORTB,PWMA
+002B   1606           00128         bsf PORTB,PWMA
+002C   1606           00129         bsf PORTB,PWMA
+002D   1606           00130         bsf PORTB,PWMA
+002E   1606           00131         bsf PORTB,PWMA
+002F   1606           00132         bsf PORTB,PWMA
+0030   1606           00133         bsf PORTB,PWMA
+0031   1606           00134         bsf PORTB,PWMA
+0032   1606           00135         bsf PORTB,PWMA
+0033   1606           00136         bsf PORTB,PWMA
+0034   1606           00137         bsf PORTB,PWMA
+0035   1606           00138         bsf PORTB,PWMA
+0036   1606           00139         bsf PORTB,PWMA
+0037   1606           00140         bsf PORTB,PWMA
+0038   1606           00141         bsf PORTB,PWMA
+0039   1606           00142         bsf PORTB,PWMA
+003A   301A           00143         movlw PWMADJUSTVAL+1
+003B   0081           00144         movwf TMR0
+003C   080C           00145         movf HITIMES,w
+003D   0090           00146         movwf TIMES
+003E   2845           00147         goto ret2
+003F                  00148 HIGHIMPINT:
+003F   3E19           00149         addlw PWMADJUSTVAL
+0040   0081           00150         movwf TMR0
+0041   1606           00151         bsf PORTB,PWMA
+0042   080C           00152         movf HITIMES,w
+0043   0090           00153         movwf TIMES
+0044   0A90           00154         incf TIMES,f
+0045                  00155 ret2:
+                      00156 ;       incf COUNTER,F
+0045   301D           00157         movlw PWMMAXVAL
+0046   0096           00158         movwf PWMMAX
+0047   0E12           00159         swapf STACKS,W
+0048   0083           00160         movwf STATUS
+0049   0E11           00161         swapf STACKW,W
+004A   0009           00162         retfie
+004B                  00163 Lowpulse:
+004B   090F           00164         comf LO_,w
+004C   0796           00165         addwf PWMMAX,f
+004D   1C03           00166         btfss STATUS,C
+004E   2874           00167         goto LOWIMPINT
+004F   0816           00168         movf PWMMAX,w
+0050   0782           00169         addwf PCL,f
+0051   1206           00170         bcf PORTB,PWMA
+0052   1206           00171         bcf PORTB,PWMA
+0053   1206           00172         bcf PORTB,PWMA
+0054   1206           00173         bcf PORTB,PWMA
+0055   1206           00174         bcf PORTB,PWMA
+0056   1206           00175         bcf PORTB,PWMA
+0057   1206           00176         bcf PORTB,PWMA
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE  6
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0058   1206           00177         bcf PORTB,PWMA
+0059   1206           00178         bcf PORTB,PWMA
+005A   1206           00179         bcf PORTB,PWMA
+005B   1206           00180         bcf PORTB,PWMA
+005C   1206           00181         bcf PORTB,PWMA
+005D   1206           00182         bcf PORTB,PWMA
+005E   1206           00183         bcf PORTB,PWMA
+005F   1206           00184         bcf PORTB,PWMA
+0060   1206           00185         bcf PORTB,PWMA
+0061   1206           00186         bcf PORTB,PWMA
+0062   1206           00187         bcf PORTB,PWMA
+0063   1206           00188         bcf PORTB,PWMA
+0064   1206           00189         bcf PORTB,PWMA
+0065   1206           00190         bcf PORTB,PWMA
+0066   1206           00191         bcf PORTB,PWMA
+0067   1206           00192         bcf PORTB,PWMA
+0068   1206           00193         bcf PORTB,PWMA
+0069   1206           00194         bcf PORTB,PWMA
+006A   1206           00195         bcf PORTB,PWMA
+006B   1206           00196         bcf PORTB,PWMA
+006C   1206           00197         bcf PORTB,PWMA
+006D   1206           00198         bcf PORTB,PWMA
+006E   1206           00199         bcf PORTB,PWMA
+006F   301C           00200         movlw PWMADJUSTVAL+3
+0070   0081           00201         movwf TMR0
+0071   080E           00202         movf LOTIMES,w
+0072   0090           00203         movwf TIMES
+0073   287A           00204         goto ret3
+0074                  00205 LOWIMPINT:
+0074   301C           00206         movlw PWMADJUSTVAL+3
+0075   0081           00207         movwf TMR0
+0076   1206           00208         bcf PORTB,PWMA
+0077   080E           00209         movf LOTIMES,w
+0078   0090           00210         movwf TIMES
+0079   0A90           00211         incf TIMES,f
+007A                  00212 ret3:
+007A   1418           00213         bsf FLAG,polarity
+007B   301D           00214         movlw PWMMAXVAL
+007C   0096           00215         movwf PWMMAX
+007D   0E12           00216         swapf STACKS,W
+007E   0083           00217         movwf STATUS
+007F   0E11           00218         swapf STACKW,W
+0080   0009           00219         retfie
+0081                  00220 polarityb:
+0081   1A86           00221         btfsc PORTB,PWMB
+0082   28B8           00222         goto Lowpulse2
+0083   090D           00223         comf HI_,w
+0084   0796           00224         addwf PWMMAX,f
+0085   1C03           00225         btfss STATUS,C
+0086   28AC           00226         goto HIGHIMPINT2
+0087   0816           00227         movf PWMMAX,w
+0088   0782           00228         addwf PCL,f
+0089   1686           00229         bsf PORTB,PWMB
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE  7
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+008A   1686           00230         bsf PORTB,PWMB
+008B   1686           00231         bsf PORTB,PWMB
+008C   1686           00232         bsf PORTB,PWMB
+008D   1686           00233         bsf PORTB,PWMB
+008E   1686           00234         bsf PORTB,PWMB
+008F   1686           00235         bsf PORTB,PWMB
+0090   1686           00236         bsf PORTB,PWMB
+0091   1686           00237         bsf PORTB,PWMB
+0092   1686           00238         bsf PORTB,PWMB
+0093   1686           00239         bsf PORTB,PWMB
+0094   1686           00240         bsf PORTB,PWMB
+0095   1686           00241         bsf PORTB,PWMB
+0096   1686           00242         bsf PORTB,PWMB
+0097   1686           00243         bsf PORTB,PWMB
+0098   1686           00244         bsf PORTB,PWMB
+0099   1686           00245         bsf PORTB,PWMB
+009A   1686           00246         bsf PORTB,PWMB
+009B   1686           00247         bsf PORTB,PWMB
+009C   1686           00248         bsf PORTB,PWMB
+009D   1686           00249         bsf PORTB,PWMB
+009E   1686           00250         bsf PORTB,PWMB
+009F   1686           00251         bsf PORTB,PWMB
+00A0   1686           00252         bsf PORTB,PWMB
+00A1   1686           00253         bsf PORTB,PWMB
+00A2   1686           00254         bsf PORTB,PWMB
+00A3   1686           00255         bsf PORTB,PWMB
+00A4   1686           00256         bsf PORTB,PWMB
+00A5   1686           00257         bsf PORTB,PWMB
+00A6   1686           00258         bsf PORTB,PWMB
+00A7   301E           00259         movlw PWMADJUSTVAL+5
+00A8   0081           00260         movwf TMR0
+00A9   080C           00261         movf HITIMES,w
+00AA   0090           00262         movwf TIMES
+00AB   28B2           00263         goto ret4
+00AC                  00264 HIGHIMPINT2:
+00AC   3E1E           00265         addlw PWMADJUSTVAL+5
+00AD   0081           00266         movwf TMR0
+00AE   1686           00267         bsf PORTB,PWMB
+00AF   080C           00268         movf HITIMES,w
+00B0   0090           00269         movwf TIMES
+00B1   0A90           00270         incf TIMES,f
+00B2                  00271 ret4:
+00B2   301D           00272         movlw PWMMAXVAL
+00B3   0096           00273         movwf PWMMAX
+00B4   0E12           00274         swapf STACKS,W
+00B5   0083           00275         movwf STATUS
+00B6   0E11           00276         swapf STACKW,W
+00B7   0009           00277         retfie
+00B8                  00278 Lowpulse2:
+00B8   090F           00279         comf LO_,w
+00B9   0796           00280         addwf PWMMAX,f
+00BA   1C03           00281         btfss STATUS,C
+00BB   28E1           00282         goto LOWIMPINT2
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE  8
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+00BC   0816           00283         movf PWMMAX,w
+00BD   0782           00284         addwf PCL,f
+00BE   1286           00285         bcf PORTB,PWMB
+00BF   1286           00286         bcf PORTB,PWMB
+00C0   1286           00287         bcf PORTB,PWMB
+00C1   1286           00288         bcf PORTB,PWMB
+00C2   1286           00289         bcf PORTB,PWMB
+00C3   1286           00290         bcf PORTB,PWMB
+00C4   1286           00291         bcf PORTB,PWMB
+00C5   1286           00292         bcf PORTB,PWMB
+00C6   1286           00293         bcf PORTB,PWMB
+00C7   1286           00294         bcf PORTB,PWMB
+00C8   1286           00295         bcf PORTB,PWMB
+00C9   1286           00296         bcf PORTB,PWMB
+00CA   1286           00297         bcf PORTB,PWMB
+00CB   1286           00298         bcf PORTB,PWMB
+00CC   1286           00299         bcf PORTB,PWMB
+00CD   1286           00300         bcf PORTB,PWMB
+00CE   1286           00301         bcf PORTB,PWMB
+00CF   1286           00302         bcf PORTB,PWMB
+00D0   1286           00303         bcf PORTB,PWMB
+00D1   1286           00304         bcf PORTB,PWMB
+00D2   1286           00305         bcf PORTB,PWMB
+00D3   1286           00306         bcf PORTB,PWMB
+00D4   1286           00307         bcf PORTB,PWMB
+00D5   1286           00308         bcf PORTB,PWMB
+00D6   1286           00309         bcf PORTB,PWMB
+00D7   1286           00310         bcf PORTB,PWMB
+00D8   1286           00311         bcf PORTB,PWMB
+00D9   1286           00312         bcf PORTB,PWMB
+00DA   1286           00313         bcf PORTB,PWMB
+00DB   1286           00314         bcf PORTB,PWMB
+00DC   301B           00315         movlw PWMADJUSTVAL+2
+00DD   0081           00316         movwf TMR0
+00DE   080E           00317         movf LOTIMES,w
+00DF   0090           00318         movwf TIMES
+00E0   28E7           00319         goto ret5
+00E1                  00320 LOWIMPINT2:
+00E1   301B           00321         movlw PWMADJUSTVAL+2
+00E2   0081           00322         movwf TMR0
+00E3   1286           00323         bcf PORTB,PWMB
+00E4   080E           00324         movf LOTIMES,w
+00E5   0090           00325         movwf TIMES
+00E6   0A90           00326         incf TIMES,f
+00E7                  00327 ret5:
+00E7   1018           00328         bcf FLAG,polarity
+00E8   301D           00329         movlw PWMMAXVAL
+00E9   0096           00330         movwf PWMMAX
+00EA   1698           00331         bsf FLAG,INT
+00EB   0A94           00332         incf COUNTER1,f
+00EC   0E12           00333         swapf STACKS,W
+00ED   0083           00334         movwf STATUS
+00EE   0E11           00335         swapf STACKW,W
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE  9
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+00EF   0009           00336         retfie
+                      00337 
+00F0                  00338 short:
+00F0   1206           00339         bcf PORTB,PWMA
+00F1   1286           00340         bcf PORTB,PWMB
+00F2   1486           00341         bsf PORTB,LEDR
+00F3   128B           00342         bcf INTCON,T0IE
+00F4   3064           00343         movlw 100               ;delay 100 times
+00F5   00A9           00344         movwf LOOPER
+00F6   1683           00345         bsf STATUS,RP0
+00F7   3047           00346         movlw 47h
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+00F8   0081           00347         movwf OPTION_
+00F9   1283           00348         bcf STATUS,RP0
+00FA                  00349 sdelayloop:
+00FA   0181           00350         clrf TMR0
+00FB                  00351 scheckagain:
+00FB   1D0B           00352         btfss INTCON,T0IF
+00FC   28FB           00353         goto scheckagain
+00FD   110B           00354         bcf INTCON,T0IF
+00FE   0BA9           00355         decfsz LOOPER,f
+00FF   28FA           00356         goto sdelayloop
+0100   108B           00357         bcf INTCON,INTF
+0101   2A77           00358         goto start
+                      00359 
+0102                  00360 mpy_s:                          ;8 bit multiply
+0102   01A2           00361         clrf H_byte
+0103   01A3           00362         clrf L_byte
+0104   3008           00363         movlw 8
+0105   00A6           00364         movwf count
+0106   081E           00365         movf mulcnd,w
+0107   1003           00366         bcf STATUS,C
+0108                  00367 loop:
+0108   0C9F           00368         rrf mulplr,f
+0109   1803           00369         btfsc STATUS,C
+010A   07A2           00370         addwf H_byte,f
+010B   0CA2           00371         rrf H_byte,f
+010C   0CA3           00372         rrf L_byte,f
+010D   0BA6           00373         decfsz count,f
+010E   2908           00374         goto loop
+010F   3400           00375         retlw 0
+                      00376 
+                      00377 
+0110                  00378 D_sub:                          ;Double precision add and subtract
+0110   2118           00379         call neg_A
+0111                  00380 D_add:
+0111   0820           00381         movf ACCaLO,w
+0112   07A1           00382         addwf ACCbLO,f
+0113   1803           00383         btfsc STATUS,C
+0114   0AA5           00384         incf ACCbHI,f
+0115   0824           00385         movf ACCaHI,w
+0116   07A5           00386         addwf ACCbHI,f
+0117   3400           00387         retlw 00
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE 10
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00388 
+0118                  00389 neg_A:                          ;negate ACCa
+0118   09A0           00390         comf ACCaLO,f
+0119   0AA0           00391         incf ACCaLO,f
+011A   1903           00392         btfsc STATUS,Z
+011B   03A4           00393         decf ACCaHI,f
+011C   09A4           00394         comf ACCaHI,f
+011D   3400           00395         retlw 00
+                      00396 
+                      00397 
+011E                  00398 DIV_LMT:                                ;Divide by 16 and limit to 100 Decimal
+011E   1003           00399         BCF STATUS,C
+011F   0CA3           00400         RRF L_byte,f
+0120   1003           00401         BCF STATUS,C
+0121   0CA2           00402         RRF H_byte,f
+0122   1803           00403         BTFSC STATUS,C
+0123   17A3           00404         BSF L_byte,7
+0124   1003           00405         BCF STATUS,C
+0125   0CA3           00406         RRF L_byte,f
+0126   1003           00407         BCF STATUS,C
+0127   0CA2           00408         RRF H_byte,f
+0128   1803           00409         BTFSC STATUS,C
+0129   17A3           00410         BSF L_byte,7
+012A   1003           00411         BCF STATUS,C
+012B   0CA3           00412         RRF L_byte,f
+012C   1003           00413         BCF STATUS,C
+012D   0CA2           00414         RRF H_byte,f
+012E   1803           00415         BTFSC STATUS,C
+012F   17A3           00416         BSF L_byte,7
+0130   1003           00417         BCF STATUS,C
+0131   0CA3           00418         RRF L_byte,f
+0132   1003           00419         BCF STATUS,C
+0133   0CA2           00420         RRF H_byte,f
+0134   1803           00421         BTFSC STATUS,C
+0135   17A3           00422         BSF L_byte,7
+0136                  00423 LMT100:
+0136   3001           00424         MOVLW 1h
+0137   0222           00425         SUBWF H_byte,0
+0138   1C03           00426         BTFSS STATUS,C
+0139   293D           00427         GOTO L8_E
+013A   3064           00428         MOVLW 64H
+013B   00A3           00429         MOVWF L_byte
+013C   2943           00430         GOTO LMT_EXIT
+013D                  00431 L8_E:
+013D   3064           00432         MOVLW 64H
+013E   0223           00433         SUBWF L_byte,w
+013F   1C03           00434         BTFSS STATUS,C
+0140   2943           00435         GOTO LMT_EXIT
+0141   3064           00436         movlw 64h
+0142   00A3           00437         movwf L_byte
+0143                  00438 LMT_EXIT:
+0143   3400           00439         retlw 00
+                      00440 
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE 11
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0144                  00441 PIDTERM:
+0144                  00442 C_ERR:                          ;Calculating the PID terms
+0144   081D           00443         movf VOLTAGEA,w
+0145   3CA2           00444         sublw VOLTAGER
+0146   1803           00445         btfsc STATUS,C
+0147   2949           00446         goto PLS_ER
+0148   294C           00447         goto MNS_ER
+0149                  00448 PLS_ER:
+0149   0099           00449         MOVWF ERR
+014A   1098           00450         bcf FLAG,ER_SGN
+014B   2950           00451         goto CE_EXIT
+014C                  00452 MNS_ER:
+014C   30A2           00453         movlw VOLTAGER
+014D   021D           00454         subwf VOLTAGEA,w
+014E   0099           00455         movwf ERR
+014F   1498           00456         bsf  FLAG,ER_SGN
+0150                  00457 CE_EXIT:
+0150   019A           00458         clrf SUMLO
+0151   01A7           00459         clrf SUMHI
+0152                  00460 C_PROP:                         ;Calculate the proportional term
+0152   0819           00461         movf ERR,w
+0153   009E           00462         movwf mulcnd
+0154   3028           00463         MOVLW KP
+0155   009F           00464         movwf mulplr
+0156   2102           00465         CALL mpy_s
+0157   211E           00466         call DIV_LMT
+0158                  00467 restorre_SGN:
+0158   1C98           00468         btfss FLAG,ER_SGN
+0159   295C           00469         goto ADDPROP
+015A   09A3           00470         comf L_byte,f
+015B   0AA3           00471         INCF L_byte,f
+015C                  00472 ADDPROP:
+015C   0823           00473         movf L_byte,w
+015D   079A           00474         addwf SUMLO,f
+015E   1803           00475         btfsc STATUS,C
+015F   0AA7           00476         incf SUMHI,f
+0160   3000           00477         movlw 0
+0161   1B9A           00478         Btfsc SUMLO,7
+0162   30FF           00479         movlw 0ffH
+0163   07A7           00480         addwf SUMHI,f
+0164                  00481 C_INT:                          ;calculate the integral term
+0164   0819           00482         movf ERR,w
+0165   1903           00483         btfsc STATUS,Z
+0166   297D           00484         goto ADDINT
+0167   1898           00485         btfsc FLAG,ER_SGN
+0168   296C           00486         goto MNS_1
+0169                  00487 PLS_1:
+0169   3001           00488         movlw KI
+016A   079B           00489         addwf ACCUM,f
+016B   296E           00490         goto LMTACM
+016C                  00491 MNS_1:
+016C   3001           00492         movlw KI
+016D   029B           00493         subwf ACCUM,f
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE 12
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+016E                  00494 LMTACM:
+016E   1B9B           00495         btfsc ACCUM,7
+016F   2977           00496         goto M_LMT
+0170                  00497 P_LMT:
+0170   309C           00498         MOVLW 9ch
+0171   071B           00499         addwf ACCUM,w
+0172   1C03           00500         btfss STATUS,C
+0173   297D           00501         goto ADDINT
+0174   3064           00502         movlw 64h
+0175   009B           00503         movwf ACCUM
+0176   297D           00504         goto ADDINT
+0177                  00505 M_LMT:
+0177   309C           00506         movlw 9ch
+0178   021B           00507         subwf ACCUM,w
+0179   1803           00508         btfsc STATUS,C
+017A   297D           00509         goto ADDINT
+017B   309C           00510         movlw 9ch
+017C   009B           00511         movwf ACCUM
+017D                  00512 ADDINT:
+017D   081B           00513         movf ACCUM,w
+017E   079A           00514         addwf SUMLO,f
+017F   1803           00515         btfsc STATUS,C
+0180   0AA7           00516         incf SUMHI,f
+0181   3000           00517         movlw 0
+0182   1B9B           00518         btfsc ACCUM,7
+0183   0900           00519         comf W,w
+0184   07A7           00520         addwf SUMHI,f
+0185                  00521 C_DIFF:                         ;Calculate the differential term
+0185   0819           00522         movf ERR,w
+0186   1C98           00523         btfss FLAG,ER_SGN
+0187   298B           00524         goto LO_BYTE
+0188   0999           00525         comf ERR,1
+0189   0A19           00526         incf ERR,w
+018A   0999           00527         comf ERR,f
+018B                  00528 LO_BYTE:
+018B   00A1           00529         movwf ACCbLO
+018C   3000           00530         movlw 0
+018D   1898           00531         btfsc FLAG,ER_SGN
+018E   30FF           00532         movlw 0ffH
+018F   00A5           00533         movwf ACCbHI
+0190   081C           00534         movf ERR_O,w
+0191   1E18           00535         btfss FLAG,OER_SGN
+0192   2995           00536         goto LO_BYTE0
+0193   099C           00537         comf ERR_O,f
+0194   0A1C           00538         incf ERR_O,w
+0195                  00539 LO_BYTE0:
+0195   00A0           00540         movwf ACCaLO
+0196   3000           00541         movlw 0
+0197   1A18           00542         btfsc FLAG,OER_SGN
+0198   30FF           00543         movlw 0ffH
+0199   00A4           00544         movwf ACCaHI
+019A   2110           00545         call D_sub
+019B                  00546 STRIP_SGN:
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE 13
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+019B   1BA5           00547         btfsc ACCbHI,7
+019C   299E           00548         goto NEG_ABS
+019D   29A3           00549         goto POS_ABS
+019E                  00550 NEG_ABS:
+019E   1598           00551         bsf FLAG,DE_SGN
+019F   09A1           00552         comf ACCbLO,f
+01A0   0A21           00553         incf ACCbLO,w
+01A1   009C           00554         movwf ERR_O
+01A2   29A6           00555         goto MULT_KD
+01A3                  00556 POS_ABS:
+01A3   1198           00557         BCF FLAG,DE_SGN
+01A4   0821           00558         movf ACCbLO,w
+01A5   009C           00559         movwf ERR_O
+01A6                  00560 MULT_KD:
+01A6   081C           00561         movf ERR_O,w
+01A7   009E           00562         movwf mulcnd
+01A8   3001           00563         movlw KD
+01A9   009F           00564         movwf mulplr
+01AA   2102           00565         call mpy_s
+01AB   211E           00566         call DIV_LMT
+01AC                  00567 RE_SGN:
+01AC   1D98           00568         btfss FLAG,DE_SGN
+01AD   29B0           00569         goto SAVE_DIFF
+01AE   09A3           00570         comf L_byte,f
+01AF   0AA3           00571         incf L_byte,f
+01B0                  00572 SAVE_DIFF:
+01B0   0823           00573         movf L_byte,w
+01B1   1903           00574         btfsc STATUS,Z
+01B2   29C3           00575         goto ROLL_ER
+01B3   009C           00576         movwf ERR_O
+01B4                  00577 ADDDIF:                         ;Add the diff term into the summ
+01B4   3000           00578         movlw 0
+01B5   1998           00579         btfsc FLAG,DE_SGN
+01B6   30FF           00580         movlw 0ffH
+01B7   00A5           00581         movwf ACCbHI
+01B8   081C           00582         movf ERR_O,W
+01B9   00A1           00583         movwf ACCbLO
+01BA   081A           00584         movf SUMLO,w
+01BB   00A0           00585         movwf ACCaLO
+01BC   0827           00586         movf SUMHI,w
+01BD   00A4           00587         movwf ACCaHI
+01BE   2111           00588         call D_add
+01BF   0821           00589         movf ACCbLO,w
+01C0   009A           00590         movwf SUMLO
+01C1   0825           00591         movf ACCbHI,w
+01C2   00A7           00592         movwf SUMHI
+                      00593 
+01C3                  00594 ROLL_ER:
+01C3   0819           00595         Movf ERR,W
+01C4   009C           00596         movwf ERR_O
+01C5   1218           00597         bcf FLAG,OER_SGN
+01C6   1898           00598         btfsc FLAG,ER_SGN
+01C7   1618           00599         bsf FLAG,OER_SGN
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE 14
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+01C8   080C           00600         movf HITIMES,w
+01C9   00A4           00601         movwf ACCaHI
+01CA   080D           00602         movf HI_,w
+01CB   00A0           00603         movwf ACCaLO
+01CC   0827           00604         movf SUMHI,w
+01CD   00A5           00605         movwf ACCbHI
+01CE   081A           00606         movf SUMLO,w
+01CF   00A1           00607         movwf ACCbLO
+01D0   2111           00608         call D_add
+01D1                  00609 WaitNoIntt:
+01D1   0801           00610         movf TMR0,W
+01D2   3CC8           00611         sublw 0c8h
+01D3   1C03           00612         btfss STATUS,C
+01D4   29D1           00613         goto WaitNoIntt
+                      00614 
+01D5   0825           00615         movf ACCbHI,w
+01D6   3C24           00616         sublw 24h
+01D7   0825           00617         movf ACCbHI,w
+01D8   1C03           00618         btfss STATUS,C
+01D9   3024           00619         movlw 24h
+01DA   1903           00620         btfsc STATUS,Z
+01DB   3001           00621         movlw 1
+01DC   008C           00622         movwf HITIMES
+01DD   00A4           00623         movwf ACCaHI
+01DE   0821           00624         movf ACCbLO,w
+01DF   008D           00625         movwf HI_
+01E0   0821           00626         movf ACCbLO,w
+01E1   00A0           00627         movwf ACCaLO
+01E2   3027           00628         movlw 27h
+01E3   00A5           00629         movwf ACCbHI
+01E4   3010           00630         movlw 10h
+01E5   00A1           00631         movwf ACCbLO
+01E6   2110           00632         call D_sub
+01E7   0825           00633         movf ACCbHI,w
+01E8   008E           00634         movwf LOTIMES
+01E9   0821           00635         movf ACCbLO,w
+01EA   008F           00636         movwf LO_
+01EB   0008           00637         return
+                      00638 
+01EC                  00639 SLP:
+01EC   1B86           00640         btfsc PORTB,KEY         ;Key press?
+01ED   2A0B           00641         goto RUN                ;No
+01EE   0AA8           00642         incf KEYPRESS,f         ;Yes,counter +1
+01EF   1FA8           00643         btfss KEYPRESS,7        ;reach 128?
+01F0   2A0C           00644         goto RUN1               ;No
+01F1   1605           00645         bsf PORTA,EN3525        ;Yes,go to bed
+01F2   128B           00646         bcf INTCON,T0IE         ;Disable intuppter
+01F3   1086           00647         bcf PORTB,LEDR          ;Led OFF
+01F4   1106           00648         bcf PORTB,LEDG
+01F5   1206           00649         bcf PORTB,PWMA
+01F6   1286           00650         bcf PORTB,PWMB
+01F7                  00651 waitnopress:
+01F7   1F86           00652         btfss PORTB,KEY         ;wait key up
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE 15
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+01F8   29F7           00653         goto waitnopress
+01F9   3064           00654         movlw 100               ;delay 100 times
+01FA   00A9           00655         movwf LOOPER
+01FB                  00656 delayloop:
+01FB   0181           00657         clrf TMR0
+01FC                  00658 checkagain:
+01FC   1D0B           00659         btfss INTCON,T0IF
+01FD   29FC           00660         goto checkagain
+01FE   110B           00661         bcf INTCON,T0IF
+01FF   0BA9           00662         decfsz LOOPER,f
+0200   29FB           00663         goto delayloop
+0201   100B           00664         bcf INTCON,RBIF         ;Set RB int
+0202   158B           00665         bsf INTCON,RBIE
+0203   0063           00666         sleep                   ;sleep until RB7 press
+0204   118B           00667         bcf INTCON,RBIE
+0205   100B           00668         bcf INTCON,RBIF
+0206                  00669 waitnoprs:
+0206   1F86           00670         btfss PORTB,KEY         ;wait key up
+0207   2A06           00671         goto waitnoprs
+0208   1205           00672         bcf PORTA,EN3525
+0209   168B           00673         bsf INTCON,T0IE
+020A   1506           00674         bsf PORTB,LEDG
+020B                  00675 RUN:
+020B   01A8           00676         clrf KEYPRESS           ;clear key counter
+020C                  00677 RUN1:
+                      00678 ;       incf COUNTER2,F
+                      00679 ;       bcf COUNTER,07h
+020C   0008           00680         return
+                      00681 
+020D                  00682 ADC:
+020D   3089           00683         movlw ADCON0VAL
+020E   009F           00684         movwf ADCON0
+020F                  00685 WaitNoInt:
+020F   0801           00686         movf TMR0,W
+0210   3CD0           00687         sublw 0d0h
+0211   1C03           00688         btfss STATUS,C
+0212   2A0F           00689         goto WaitNoInt
+0213   151F           00690         bsf ADCON0,GO
+0214                  00691 WaitAdc:
+0214   191F           00692         btfsc ADCON0,GO
+0215   2A14           00693         goto WaitAdc
+0216   081E           00694         movf ADRES,W
+0217   009D           00695         movwf VOLTAGEA
+0218   0008           00696         return
+                      00697 
+                      00698 ;LIGHT
+                      00699 ;       btfss COUNTER1,4
+                      00700 ;       return
+                      00701 ;       movlw 0
+                      00702 ;       movwf COUNTER1
+                      00703 ;       btfss LEDREG,FLASHR
+                      00704 ;       goto NOFLASH1
+                      00705 ;       btfss PORTB,LEDR
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE 16
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00706 ;       goto LEDRL
+                      00707 ;       goto LEDRH
+                      00708 ;NOFLASH1
+                      00709 ;       btfsc LEDREG,LEDR
+                      00710 ;       goto LEDRH
+                      00711 ;LEDRL
+                      00712 ;       bsf PORTB,LEDR
+                      00713 ;       goto LIGHTG
+                      00714 ;LEDRH
+                      00715 ;       bcf PORTB,LEDR
+                      00716 ;LIGHTG
+                      00717 ;       btfss LEDREG,FLASHG
+                      00718 ;       goto NOFLASH2
+                      00719 ;       btfss PORTB,LEDG
+                      00720 ;       goto LEDGL
+                      00721 ;       goto LEDGH
+                      00722 ;NOFLASH2
+                      00723 ;       btfsc LEDREG,LEDG
+                      00724 ;       goto LEDGH
+                      00725 ;LEDGL
+                      00726 ;       bsf PORTB,LEDG
+                      00727 ;       return
+                      00728 ;LEDGH
+                      00729 ;       bcf PORTB,LEDG
+                      00730 ;       return
+                      00731 
+0219                  00732 LOWDET:
+0219   3081           00733         movlw ADCON0V0
+021A   009F           00734         movwf ADCON0
+021B                  00735 WaitNoIntl:
+021B   0801           00736         movf TMR0,W
+021C   3CD0           00737         sublw 0d0h
+021D   1C03           00738         btfss STATUS,C
+021E   2A1B           00739         goto WaitNoIntl
+021F   151F           00740         bsf ADCON0,GO
+0220                  00741 WaitAdcl:
+0220   191F           00742         btfsc ADCON0,GO
+0221   2A20           00743         goto WaitAdcl
+0222   081E           00744         movf ADRES,W
+0223   3CB8           00745         sublw LOWVOLTAGE
+0224   1C03           00746         btfss STATUS,C
+0225   2A35           00747         goto lret1
+0226   0A93           00748         incf LOWCOUNT,f
+0227   1F93           00749         btfss LOWCOUNT,7
+0228   0008           00750         return
+0229   1206           00751         bcf PORTB,PWMA
+022A   1286           00752         bcf PORTB,PWMB
+022B   1605           00753         bsf PORTA,EN3525
+022C   128B           00754         bcf INTCON,T0IE
+                      00755 ;       bsf LEDREG,LEDR
+                      00756 ;       bcf LEDREG,FLASHR
+                      00757 ;       bcf LEDREG,FLASHG
+                      00758 ;       bcf LEDREG,LEDG
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE 17
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+022D   1106           00759         bcf PORTB,LEDG
+022E   1486           00760         bsf PORTB,LEDR
+022F   100B           00761         bcf INTCON,RBIF         ;Set RB int
+0230   158B           00762         bsf INTCON,RBIE
+0231   0063           00763         sleep                   ;sleep until RB7 press
+0232   118B           00764         bcf INTCON,RBIE
+0233   100B           00765         bcf INTCON,RBIF
+0234   2A77           00766         goto start
+0235                  00767 lret1:
+0235   0193           00768         clrf LOWCOUNT
+0236   0008           00769         return
+                      00770 
+0237                  00771 OVERCUT:
+0237   3099           00772         movlw ADCON0V3
+0238   009F           00773         movwf ADCON0
+0239                  00774 WaitNoIntO:
+0239   0801           00775         movf TMR0,W
+023A   3CD0           00776         sublw 0d0h
+023B   1C03           00777         btfss STATUS,C
+023C   2A39           00778         goto WaitNoIntO
+023D   151F           00779         bsf ADCON0,GO
+023E                  00780 WaitAdcO:
+023E   191F           00781         btfsc ADCON0,GO
+023F   2A3E           00782         goto WaitAdcO
+0240   081E           00783         movf ADRES,W
+0241   3CA4           00784         sublw OVER150
+0242   1803           00785         btfsc STATUS,C
+0243   2A59           00786         goto O125
+0244   0A95           00787         incf count150,f
+0245   1F95           00788         btfss count150,7
+0246   2A5A           00789         goto O1251
+0247   1486           00790         bsf PORTB,LEDR
+0248   1106           00791         bcf PORTB,LEDG
+0249   1206           00792         bcf PORTB,PWMA
+024A   1286           00793         bcf PORTB,PWMB
+024B   3032           00794         movlw 50                ;delay 100 times
+024C   00A9           00795         movwf LOOPER
+024D   3047           00796         movlw 47h
+024E   1683           00797         bsf STATUS,RP0
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+024F   0081           00798         movwf OPTION_
+0250   1283           00799         bcf STATUS,RP0
+0251   128B           00800         bcf INTCON,T0IE
+0252                  00801 delayloop1:
+0252   0181           00802         clrf TMR0
+0253                  00803 checkagain1:
+0253   1D0B           00804         btfss INTCON,T0IF
+0254   2A53           00805         goto checkagain1
+0255   110B           00806         bcf INTCON,T0IF
+0256   0BA9           00807         decfsz LOOPER,f
+0257   2A52           00808         goto delayloop1
+0258   2A77           00809         goto start
+0259                  00810 O125:
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE 18
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0259   0195           00811         clrf count150
+025A                  00812 O1251:
+025A   081E           00813         movf ADRES,W
+025B   3C89           00814         sublw OVER125
+025C   1803           00815         btfsc STATUS,C
+025D   2A75           00816         goto ORET
+025E   0814           00817         movf COUNTER1,w
+025F   1903           00818         btfsc STATUS,Z
+0260   0A97           00819         incf count125,f
+0261   1E17           00820         BTfss count125,4
+0262   0008           00821         return
+0263   1486           00822         bsf PORTB,LEDR
+0264   1106           00823         bcf PORTB,LEDG
+0265   1206           00824         bcf PORTB,PWMA
+0266   1286           00825         bcf PORTB,PWMB
+0267   3032           00826         movlw 50                ;delay 100 times
+0268   00A9           00827         movwf LOOPER
+0269   3047           00828         movlw 47h
+026A   1683           00829         bsf STATUS,RP0
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+026B   0081           00830         movwf OPTION_
+026C   1283           00831         bcf STATUS,RP0
+026D   128B           00832         bcf INTCON,T0IE
+026E                  00833 delayloop2:
+026E   0181           00834         clrf TMR0
+026F                  00835 checkagain2:
+026F   1D0B           00836         btfss INTCON,T0IF
+0270   2A6F           00837         goto checkagain2
+0271   110B           00838         bcf INTCON,T0IF
+0272   0BA9           00839         decfsz LOOPER,f
+0273   2A6E           00840         goto delayloop2
+0274   2A77           00841         goto start
+0275                  00842 ORET:
+0275   0197           00843         clrf count125
+0276   0008           00844         return
+                      00845 
+0277                  00846 start:
+0277   301D           00847         movlw PWMMAXVAL
+0278   0096           00848         movwf PWMMAX
+0279   300B           00849         movlw 0bh
+027A   008E           00850         movwf LOTIMES
+027B   3071           00851         movlw 71h
+027C   008F           00852         movwf LO_
+027D   301B           00853         movlw 1bh
+027E   008C           00854         movwf HITIMES
+027F   309F           00855         movlw 9fh
+0280   008D           00856         movwf HI_
+0281   1683           00857         bsf STATUS,RP0
+0282   300F           00858         movlw TRISAVAL
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0283   0085           00859         movwf TRISA
+0284   3081           00860         movlw TRISBVAL
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE 19
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0285   0086           00861         movwf TRISB
+0286   1206           00862         bcf PORTB,PWMA
+0287   1286           00863         bcf PORTB,PWMB
+0288   3000           00864         movlw ADCON1VAL
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0289   009F           00865         movwf ADCON1
+028A   304F           00866         movlw OPTIONVAL
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+028B   0081           00867         movwf OPTION_
+028C   1283           00868         bcf STATUS,RP0
+028D   0181           00869         clrf TMR0
+028E   30B0           00870         movlw INTCONVAL
+028F   008B           00871         movwf INTCON
+0290   1506           00872         bsf PORTB,LEDG
+0291   1086           00873         bcf PORTB,LEDR
+0292   1205           00874         bcf PORTA,EN3525
+0293                  00875 Idle:
+0293   0064           00876         clrwdt
+0294   21EC           00877         call SLP
+0295   1E98           00878         btfss FLAG,INT
+0296   2A93           00879         goto Idle
+0297   1298           00880         bcf FLAG,INT
+                      00881 ;       call ADC
+                      00882 ;       call PIDTERM
+0298   2219           00883         call LOWDET
+0299   2237           00884         call OVERCUT
+                      00885 ;       call LIGHT
+029A   2A93           00886         goto Idle
+                      00887 
+                      00888         end
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE 20
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+ACCUM                             0000001B
+ACCaHI                            00000024
+ACCaLO                            00000020
+ACCbHI                            00000025
+ACCbLO                            00000021
+AC_SGN                            00000002
+ADC                               0000020D
+ADCON0                            0000001F
+ADCON0V0                          00000081
+ADCON0V3                          00000099
+ADCON0VAL                         00000089
+ADCON1                            0000009F
+ADCON1VAL                         00000000
+ADCS0                             00000006
+ADCS1                             00000007
+ADDDIF                            000001B4
+ADDINT                            0000017D
+ADDPROP                           0000015C
+ADIE                              00000006
+ADIF                              00000006
+ADON                              00000000
+ADRES                             0000001E
+C                                 00000000
+CE_EXIT                           00000150
+CHS0                              00000003
+CHS1                              00000004
+CHS2                              00000005
+COUNTER1                          00000014
+C_DIFF                            00000185
+C_ERR                             00000144
+C_INT                             00000164
+C_PROP                            00000152
+DC                                00000001
+DE_SGN                            00000003
+DIV_LMT                           0000011E
+D_add                             00000111
+D_sub                             00000110
+EN3525                            00000004
+ERR                               00000019
+ERR_O                             0000001C
+ER_SGN                            00000001
+F                                 00000001
+FLAG                              00000018
+FSR                               00000004
+GIE                               00000007
+GO                                00000002
+GO_DONE                           00000002
+HIGHIMPINT                        0000003F
+HIGHIMPINT2                       000000AC
+HITIMES                           0000000C
+HI_                               0000000D
+H_byte                            00000022
+INDF                              00000000
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE 21
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+INT                               00000005
+INTCON                            0000000B
+INTCONVAL                         000000B0
+INTE                              00000004
+INTEDG                            00000006
+INTF                              00000001
+IRP                               00000007
+Idle                              00000293
+KD                                00000001
+KEY                               00000007
+KEYPRESS                          00000028
+KI                                00000001
+KP                                00000028
+L8_E                              0000013D
+LEDG                              00000002
+LEDR                              00000001
+LMT100                            00000136
+LMTACM                            0000016E
+LMT_EXIT                          00000143
+LOOPER                            00000029
+LOTIMES                           0000000E
+LOWCOUNT                          00000013
+LOWDET                            00000219
+LOWIMPINT                         00000074
+LOWIMPINT2                        000000E1
+LOWVOLTAGE                        000000B8
+LO_                               0000000F
+LO_BYTE                           0000018B
+LO_BYTE0                          00000195
+L_byte                            00000023
+Lowpulse                          0000004B
+Lowpulse2                         000000B8
+MNS_1                             0000016C
+MNS_ER                            0000014C
+MULT_KD                           000001A6
+M_LMT                             00000177
+NEG_ABS                           0000019E
+NOT_BO                            00000000
+NOT_BOR                           00000000
+NOT_DONE                          00000002
+NOT_MPE                           00000002
+NOT_PD                            00000003
+NOT_POR                           00000001
+NOT_RBPU                          00000007
+NOT_TO                            00000004
+O125                              00000259
+O1251                             0000025A
+OER_SGN                           00000004
+OPTIONVAL                         0000004F
+OPTION_                           00000081
+ORET                              00000275
+OVER125                           00000089
+OVER150                           000000A4
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE 22
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+OVERCUT                           00000237
+PCFG0                             00000000
+PCFG1                             00000001
+PCL                               00000002
+PCLATH                            0000000A
+PCON                              0000008E
+PEIE                              00000006
+PIDTERM                           00000144
+PIE1                              0000008C
+PIR1                              0000000C
+PLS_1                             00000169
+PLS_ER                            00000149
+PORTA                             00000005
+PORTB                             00000006
+POS_ABS                           000001A3
+PS0                               00000000
+PS1                               00000001
+PS2                               00000002
+PSA                               00000003
+PWMA                              00000004
+PWMADJUSTVAL                      00000019
+PWMB                              00000005
+PWMMAX                            00000016
+PWMMAXVAL                         0000001D
+P_LMT                             00000170
+RBIE                              00000003
+RBIF                              00000000
+RE_SGN                            000001AC
+ROLL_ER                           000001C3
+RP0                               00000005
+RP1                               00000006
+RUN                               0000020B
+RUN1                              0000020C
+SAVE_DIFF                         000001B0
+SLP                               000001EC
+STACKS                            00000012
+STACKW                            00000011
+STATUS                            00000003
+STRIP_SGN                         0000019B
+SUMHI                             00000027
+SUMLO                             0000001A
+T0CS                              00000005
+T0IE                              00000005
+T0IF                              00000002
+T0SE                              00000004
+TIMES                             00000010
+TMR0                              00000001
+TRISA                             00000085
+TRISAVAL                          0000000F
+TRISB                             00000086
+TRISBVAL                          00000081
+VOLTAGEA                          0000001D
+VOLTAGER                          000000A2
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE 23
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+W                                 00000000
+WaitAdc                           00000214
+WaitAdcO                          0000023E
+WaitAdcl                          00000220
+WaitNoInt                         0000020F
+WaitNoIntO                        00000239
+WaitNoIntl                        0000021B
+WaitNoIntt                        000001D1
+Z                                 00000002
+__16C711                          00000001
+checkagain                        000001FC
+checkagain1                       00000253
+checkagain2                       0000026F
+count                             00000026
+count125                          00000017
+count150                          00000015
+delayloop                         000001FB
+delayloop1                        00000252
+delayloop2                        0000026E
+loop                              00000108
+lret1                             00000235
+mpy_s                             00000102
+mulcnd                            0000001E
+mulplr                            0000001F
+neg_A                             00000118
+polarity                          00000000
+polarityb                         00000081
+pulse                             00000012
+restorre_SGN                      00000158
+ret1                              0000000E
+ret2                              00000045
+ret3                              0000007A
+ret4                              000000B2
+ret5                              000000E7
+scheckagain                       000000FB
+sdelayloop                        000000FA
+short                             000000F0
+start                             00000277
+waitnopress                       000001F7
+waitnoprs                         00000206
+
+
+MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
+
+0000 : X---XXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0040 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+MPASM 02.30.11 Intermediate   LENTIL4.ASM   2-21-2000  14:09:14         PAGE 24
+
+
+MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
+
+
+0080 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+00C0 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0100 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0140 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0180 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+01C0 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0200 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0240 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0280 : XXXXXXXXXXXXXXXX XXXXXXXXXXX----- ---------------- ----------------
+
+All other memory blocks unused.
+
+Program Memory Words Used:   664
+Program Memory Words Free:   360
+
+
+Errors   :     0
+Warnings :     0 reported,     0 suppressed
+Messages :     7 reported,     0 suppressed
+
+

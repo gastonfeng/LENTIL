@@ -1,0 +1,24 @@
+** circuit file for profile: 3525 
+
+** WARNING: THIS AUTOMATICALLY GENERATED FILE MAY BE OVERWRITTEN BY SUBSEQUENT PROFILES
+
+*Libraries: 
+* Local Libraries :
+* From [PSPICE NETLIST] section of pspice91.ini file:
+.lib "D:\my_lib\orcad.lib" 
+.lib "nom.lib" 
+
+*Analysis directives: 
+.TRAN  0 200u 0 
+.OPTIONS ABSTOL= 10.0p
+.OPTIONS ITL1= 1500
+.OPTIONS ITL2= 200
+.OPTIONS ITL4= 1000
+.OPTIONS VNTOL= 10.0u
+.PROBE 
+.INC "transformer-SCHEMATIC1.net" 
+
+.INC "transformer-SCHEMATIC1.als"
+
+
+.END

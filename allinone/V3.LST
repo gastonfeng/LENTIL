@@ -1,0 +1,1007 @@
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ;       150W square waveform inverter & solar charger
+                      00002 ;       filename:000228.asm
+                      00003 ;       author:Fengjiantao
+                      00004 ;       begin from:2000.02.28
+                      00005 
+                      00006         include "p16c711.inc"
+                      00001         LIST
+                      00002 ; P16C711.INC  Standard Header File, Version 1.00    Microchip Technology, Inc.
+                      00151         LIST
+                      00007 
+                      00008 ;Constant definitions
+  000000C8            00009 OPTIONVAL       equ 0xc8        ;Option register value
+                      00010 ;       1 1 0 0 1 0 0 0
+                      00011 ;       | | | | | | | | 
+                      00012 ;       | | | | | |_|_|_PS2,PS1,PS0,Prescaler,000=1:1
+                      00013 ;       | | | | |_______PSA,Prescaler select,1=WDT(Watch dog timer),0=RTCC
+                      00014 ;       | | | |_________RTE,RTCC trig,0=Low to High
+                      00015 ;       | | |___________RTS,RTCC input select,0=clkout(fosc/4),1=External
+                      00016 ;       | |_____________INTEDG,int trig edge,0=falledge,1=raise edge
+                      00017 ;       |_______________RBPU,RB pump up,0=Enable,1=Disable
+                      00018 
+  000000B0            00019 INTCONVAL       equ 0xb0        ;interrupt control
+                      00020 ;       1 0 1 1 0 0 0 0
+                      00021 ;       | | | | | | | |_RBIF
+                      00022 ;       | | | | | | |___INTF
+                      00023 ;       | | | | | |_____T0IF
+                      00024 ;       | | | | |_______RBIE,0=Disable
+                      00025 ;       | | | |_________INTE,0=Disable
+                      00026 ;       | | |___________T0IE,1=Enable
+                      00027 ;       | |_____________ADIE,0=Disable
+                      00028 ;       |_______________GIE,Globe interrupt control ,1=Enable
+                      00029 
+  00000081            00030 ADCON0VAL       equ 0x81        ;AD control register 0,CH0
+                      00031 ;       1 0 0 0 0 0 0 1
+                      00032 ;       | | | | | | | |_ADON,1=Enable AD
+                      00033 ;       | | | | | | |___ADIF,set when AD complete
+                      00034 ;       | | | | | |_____GO/DONE,AD start when set
+                      00035 ;       | | | |_|_______CHS1,CHS0,CH select
+                      00036 ;       | | |___________reserve
+                      00037 ;       |_|_____________,ADCS1,ADCS0,AD clock select,10=fosc/32
+                      00038 
+  00000089            00039 ADCON0VAL1      equ 0x89        ;AD control register 0,CH1
+                      00040 
+  00000014            00041 PWMADJUSTVAL    equ .20
+  0000001D            00042 PWMMAXVAL       equ .29
+  0000001B            00043 hightimes       equ .27
+  0000000C            00044 lowtimes        equ .12
+  0000008C            00045 LVD             equ .140        ;3k:1k,10.95V=2.74v,
+  0000009A            00046 midvol          equ .154        ;12V=3V
+  000000A9            00047 hivol           equ .169        ;13.2V=3.3V
+  000000AE            00048 recon           equ .174        ;13.6V=3.4v
+  000000B7            00049 HVD             equ .183        ;14.3V=3.58v
+                      00050 
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00051 ;Port definitions
+                      00052 ;PORTA
+  00000003            00053 TRISAVAL        equ 0x3
+  00000002            00054 ADCON1VAL       equ 2
+  00000002            00055 POWERON         equ 2
+                      00056 
+                      00057 ;PORTB
+  00000011            00058 TRISBVAL        equ 0x11
+  00000010            00059 TRISBVAL1       equ 0x10
+  00000000            00060 EN3525          equ 0
+  00000001            00061 LEDG            equ 1
+  00000002            00062 LEDR            equ 2
+  00000003            00063 LED             equ 3
+  00000002            00064 TX              equ 2
+  00000003            00065 SCK             equ 3
+  00000004            00066 KEY             equ 4
+  00000005            00067 OUTP            equ 5
+  00000006            00068 PWMOUTBIT       equ 6
+  00000007            00069 OUTN            equ 7
+                      00070 
+                      00071 ;flag bit definitions
+  00000000            00072 polarity        equ 0
+  00000001            00073 edge            equ 1
+  00000002            00074 falege          equ 2
+  00000003            00075 standby         equ 3
+  00000004            00076 flash           equ 4
+                      00077 
+                      00078 ;Register definitions
+  0000000C            00079 flag            equ .12         ;flag register
+  0000000D            00080 STACKW          equ .13         ;w stack
+  0000000E            00081 STACKS          equ .14         ;flag stack
+  0000000F            00082 PWMDESIRED      equ .15         ;PWM pluse width
+  00000010            00083 PWMHELP         equ .16         ;PWM help register
+  00000011            00084 PWMMAX          equ .17         ;maximum pluse with with count MODE
+  00000012            00085 COUNTER         equ .18         ;flash LED counter
+  00000013            00086 times           equ .19         ;50Hz Waveform counter
+  00000014            00087 KEYPRESS        equ .20         ;key press counter
+                      00088 ;LOOPER         equ .21         ;
+                      00089 ;LOWCOUNT       equ .22
+  00000017            00090 adtimes         equ .23         ;A/D operation counter
+  00000018            00091 sumhi           equ .24         ;
+  00000019            00092 sumlo           equ .25
+  0000001A            00093 voltage         equ .26
+  0000001B            00094 ddelay          equ .27         ;status change counter
+  0000001C            00095 ddelay1         equ .28         ;status change help counter
+  0000001D            00096 delaytype       equ .29         ;status change type
+  0000001E            00097 keypress2       equ .30         ;key press counter
+  0000001F            00098 outcount        equ .31         ;display number bit counter
+  00000020            00099 xmsreg          equ .32         ;display number
+                      00100 
+                      00101 ;Program Entry
+0000                  00102         org 0
+0000   2971           00103         goto begin
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00104 
+                      00105 ;Interrupt Entry
+0004                  00106         ORG 04h                         ; timer interrupt
+0004   1801           00107         btfsc TMR0,0                    ; compensate comp time of 1/2 cyc
+0005   2806           00108         goto PwmInt                     ; instruc when timer int occured
+0006                  00109 PwmInt:
+0006   008D           00110         movwf STACKW                    ; copy W register... to "stack"
+0007   0E8D           00111         swapf STACKW,F                  ; ...to "stack"
+0008   0E03           00112         swapf STATUS,W                  ; copy STATUS register...
+0009   008E           00113         movwf STACKS                    ; ...to "stack"
+000A   1C8B           00114         btfss INTCON,INTF
+000B   280E           00115         goto T0INT
+000C   1A0B           00116         btfsc INTCON,INTE
+000D   28ED           00117         goto EXTINT
+000E                  00118 T0INT:
+000E   110B           00119         bcf INTCON,T0IF                 ; clear interrupt flag
+000F   1B06           00120         btfsc PORTB,PWMOUTBIT           ; which edge is required?
+0010   2884           00121         goto Lowpulse                   ; -> goto falling edge
+0011                  00122 Highpulse:
+0011   090F           00123         comf PWMDESIRED,W               ; get desired PWM value
+0012   0090           00124         movwf PWMHELP                   ; store val for the foll low pulse
+0013   0791           00125         addwf PWMMAX,F                  ; calc number of inst’s to skip
+0014   1C03           00126         btfss STATUS,C                  ; which method to use?
+0015   283A           00127         goto HighImpInt                 ; -> using interrupt
+0016                  00128 HighImpShrt:
+0016   0811           00129         movf PWMMAX,W                   ; get number of inst’s to skip
+0017   0782           00130         addwf PCL,F                     ; skip n instructions
+0018   1706           00131         bsf PORTB,PWMOUTBIT     ; rising edge, 28 cycles hi pulse
+0019   1706           00132         bsf PORTB,PWMOUTBIT     ; 27 cycles
+001A   1706           00133         bsf PORTB,PWMOUTBIT     ; 26 cycles
+001B   1706           00134         bsf PORTB,PWMOUTBIT     ; 25 cycles
+001C   1706           00135         bsf PORTB,PWMOUTBIT     ; 24 cycles
+001D   1706           00136         bsf PORTB,PWMOUTBIT     ; 23 cycles
+001E   1706           00137         bsf PORTB,PWMOUTBIT     ; 22 cycles
+001F   1706           00138         bsf PORTB,PWMOUTBIT     ; 21 cycles
+0020   1706           00139         bsf PORTB,PWMOUTBIT     ; 20 cycles
+0021   1706           00140         bsf PORTB,PWMOUTBIT     ; 19 cycles
+0022   1706           00141         bsf PORTB,PWMOUTBIT     ; 18 cycles
+0023   1706           00142         bsf PORTB,PWMOUTBIT     ; 17 cycles
+0024   1706           00143         bsf PORTB,PWMOUTBIT     ; 16 cycles
+0025   1706           00144         bsf PORTB,PWMOUTBIT     ; 15 cycles
+0026   1706           00145         bsf PORTB,PWMOUTBIT     ; 14 cycles
+0027   1706           00146         bsf PORTB,PWMOUTBIT     ; 13 cycles
+0028   1706           00147         bsf PORTB,PWMOUTBIT     ; 12 cycles
+0029   1706           00148         bsf PORTB,PWMOUTBIT     ; 11 cycles
+002A   1706           00149         bsf PORTB,PWMOUTBIT     ; 10 cycles
+002B   1706           00150         bsf PORTB,PWMOUTBIT     ; 9 cycles
+002C   1706           00151         bsf PORTB,PWMOUTBIT     ; 8 cycles
+002D   1706           00152         bsf PORTB,PWMOUTBIT     ; 7 cycles
+002E   1706           00153         bsf PORTB,PWMOUTBIT     ; 6 cycles
+002F   1706           00154         bsf PORTB,PWMOUTBIT     ; 5 cycles
+0030   1706           00155         bsf PORTB,PWMOUTBIT     ; 4 cycles
+0031   1706           00156         bsf PORTB,PWMOUTBIT     ; 3 cycles
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0032   1706           00157         bsf PORTB,PWMOUTBIT     ; 2 cyclesbsf PORTB,PWMOUTBIT ; 1 cycle
+0033   1706           00158         bsf PORTB,PWMOUTBIT     ; 1 cyclesbsf PORTB,PWMOUTBIT ; 1 cycle
+0034   1306           00159         bcf PORTB,PWMOUTBIT     ; fall edge;start of the following
+                      00160                                         ; low pulse using the interrupt
+                      00161 ;       incf COUNTER,F                  ; trigger COUNTER, cause there was
+0035   150C           00162         bsf flag,falege                         ; a rising edge
+0036   0910           00163         comf PWMHELP,W                  ; get required low pulse length
+0037   3E1A           00164         addlw PWMADJUSTVAL+6            ; calculate timer loading value
+                      00165                                         ; Edge was generated 5 cycles before
+                      00166                                         ; usual point of time.
+0038   0081           00167         movwf TMR0                      ; put value into timer
+0039   28AE           00168         goto LowImpInt2                 ; low pulse using int is running
+003A                  00169 HighImpInt:                             ; high pulse using interrupt
+003A   3E14           00170         addlw PWMADJUSTVAL              ; calculate timer loading value
+003B   0081           00171         movwf TMR0                      ; put value into timer
+003C                  00172 HighImpInt2:
+003C   1706           00173         bsf PORTB,PWMOUTBIT             ; generate rising edge
+                      00174 ;       incf COUNTER,F                  ; trigger counter, because there
+                      00175                                         ; was a rising edge
+003D   301C           00176         movlw PWMMAXVAL-1               ; "repair"...
+003E   0091           00177         movwf PWMMAX                    ; ...support register
+                      00178 
+003F   1D0C           00179         btfss flag,falege
+0040   2874           00180         goto intreth
+0041   110C           00181         bcf flag,falege
+0042   1A06           00182         btfsc PORTB,KEY                 ;
+0043   0194           00183         clrf KEYPRESS
+0044   0A94           00184         incf KEYPRESS,f
+0045   0A9C           00185         incf ddelay1,f
+0046   1F9C           00186         btfss ddelay1,7
+0047   284B           00187         goto nexth
+0048   0A92           00188         incf COUNTER,f
+0049   0A9B           00189         incf ddelay,f
+004A   019C           00190         clrf ddelay1
+004B                  00191 nexth:
+004B   198C           00192         btfsc flag,standby
+004C   2878           00193         goto NOTON
+004D   120C           00194         bcf flag,flash
+004E   1586           00195         bsf PORTB,LED
+004F   1683           00196         bsf STATUS,RP0
+0050   3011           00197         movlw TRISBVAL
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0051   0086           00198         movwf TRISB
+0052   1283           00199         bcf STATUS,RP0
+0053   1006           00200         bcf PORTB,EN3525
+0054   1505           00201         bsf PORTA,POWERON
+0055   108B           00202         bcf INTCON,INTF
+0056   160B           00203         bsf INTCON,INTE
+0057   0B93           00204         decfsz times,f                  ;50Hz Waveform gen
+0058   2874           00205         goto intreth
+0059   1C0C           00206         btfss flag,polarity             ;positive or negative
+005A   2868           00207         goto neg_genh
+005B   1C8C           00208         btfss flag,edge                 ;rising edge or falling edge
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE  5
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+005C   2862           00209         goto fallingedgeh
+005D   1686           00210         bsf PORTB,OUTP
+005E   301B           00211         movlw hightimes
+005F   0093           00212         movwf times
+0060   108C           00213         bcf flag,edge
+0061   2874           00214         goto intreth
+0062                  00215 fallingedgeh:
+0062   1286           00216         bcf PORTB,OUTP
+0063   300C           00217         movlw lowtimes
+0064   0093           00218         movwf times
+0065   148C           00219         bsf flag,edge
+0066   100C           00220         bcf flag,polarity
+0067   2874           00221         goto intreth
+0068                  00222 neg_genh:
+0068   1C8C           00223         btfss flag,edge
+0069   286F           00224         goto falledgeh
+006A   1786           00225         bsf PORTB,OUTN
+006B   301B           00226         movlw hightimes
+006C   0093           00227         movwf times
+006D   108C           00228         bcf flag,edge
+006E   2874           00229         goto intreth
+006F                  00230 falledgeh:
+006F   1386           00231         bcf PORTB,OUTN
+0070   300C           00232         movlw lowtimes
+0071   0093           00233         movwf times
+0072   148C           00234         bsf flag,edge
+0073   140C           00235         bsf flag,polarity
+0074                  00236 intreth:        
+                      00237 
+0074   0E0E           00238         swapf STACKS,W                  ; restore...
+0075   0083           00239         movwf STATUS                    ; ...STATUS register
+0076   0E0D           00240         swapf STACKW,W                  ; restore W register
+0077   0009           00241         retfie                          ; return to main program
+0078                  00242 NOTON:
+0078   1286           00243         bcf PORTB,OUTP
+0079   1386           00244         bcf PORTB,OUTN
+007A   1E0C           00245         btfss flag,flash
+007B   1186           00246         bcf PORTB,LED
+007C   1105           00247         bcf PORTA,POWERON
+007D   1683           00248         bsf STATUS,RP0
+007E   120B           00249         bcf INTCON,INTE
+007F   3010           00250         movlw TRISBVAL1
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0080   0086           00251         movwf TRISB
+0081   1283           00252         bcf STATUS,RP0
+0082   1406           00253         bsf PORTB,EN3525
+0083   2874           00254         goto intreth
+                      00255         
+0084                  00256 Lowpulse:
+0084   0910           00257         comf PWMHELP,W                  ; get required pulse length
+0085   0791           00258         addwf PWMMAX,F                  ; calc number of inst’s to skip
+0086   1C03           00259         btfss STATUS,C                  ; which method is to use?
+0087   28AC           00260         goto LowImpInt                  ; ->using interrupt
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE  6
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0088                  00261 LowImpShrt:
+0088   0811           00262         movf PWMMAX,W                   ; get number of inst’s to skip
+0089   0782           00263         addwf PCL,F                     ; skip n instructions
+008A   1306           00264         bcf PORTB,PWMOUTBIT             ; falling edge, 27 cycles low pulse
+008B   1306           00265         bcf PORTB,PWMOUTBIT             ; 26 cycles
+008C   1306           00266         bcf PORTB,PWMOUTBIT             ; 25 cycles
+008D   1306           00267         bcf PORTB,PWMOUTBIT             ; 24 cycles
+008E   1306           00268         bcf PORTB,PWMOUTBIT             ; 23 cycles
+008F   1306           00269         bcf PORTB,PWMOUTBIT             ; 22 cycles
+0090   1306           00270         bcf PORTB,PWMOUTBIT             ; 21 cycles
+0091   1306           00271         bcf PORTB,PWMOUTBIT             ; 20 cycles
+0092   1306           00272         bcf PORTB,PWMOUTBIT             ; 19 cycles
+0093   1306           00273         bcf PORTB,PWMOUTBIT             ; 18 cycles
+0094   1306           00274         bcf PORTB,PWMOUTBIT             ; 17 cycles
+0095   1306           00275         bcf PORTB,PWMOUTBIT             ; 16 cycles
+0096   1306           00276         bcf PORTB,PWMOUTBIT             ; 15 cycles
+0097   1306           00277         bcf PORTB,PWMOUTBIT             ; 14 cycles
+0098   1306           00278         bcf PORTB,PWMOUTBIT             ; 13 cycles
+0099   1306           00279         bcf PORTB,PWMOUTBIT             ; 12 cycles
+009A   1306           00280         bcf PORTB,PWMOUTBIT             ; 11 cycles
+009B   1306           00281         bcf PORTB,PWMOUTBIT             ; 10 cycles
+009C   1306           00282         bcf PORTB,PWMOUTBIT             ; 9 cycles
+009D   1306           00283         bcf PORTB,PWMOUTBIT             ; 8 cycles
+009E   1306           00284         bcf PORTB,PWMOUTBIT             ; 7 cycles
+009F   1306           00285         bcf PORTB,PWMOUTBIT             ; 6 cycles
+00A0   1306           00286         bcf PORTB,PWMOUTBIT             ; 5 cycles
+00A1   1306           00287         bcf PORTB,PWMOUTBIT             ; 4 cycles
+00A2   1306           00288         bcf PORTB,PWMOUTBIT             ; 3 cycles
+00A3   1306           00289         bcf PORTB,PWMOUTBIT             ; 2 cycles
+00A4   1306           00290         bcf PORTB,PWMOUTBIT             ; 1 cycle
+00A5   1706           00291         bsf PORTB,PWMOUTBIT             ; rising edge; start of the next
+                      00292                                         ; high pulse using the interrupt
+00A6   090F           00293         comf PWMDESIRED,W               ; get desired PWM value
+00A7   0090           00294         movwf PWMHELP                   ; store val for the next lo pulse
+00A8   3E19           00295         addlw PWMADJUSTVAL+5            ; calculate timer loading value
+                      00296                                         ; Edge was gen'd 5 cycles before
+                      00297                                         ; usual point of time.
+00A9   0081           00298         movwf TMR0                      ; put value into timer
+00AA   150C           00299         bsf flag,falege
+00AB   283C           00300         goto HighImpInt2                ; high pulse using int is running
+00AC                  00301 LowImpInt:                              ; low pulse using interrupt
+00AC   3E14           00302         addlw PWMADJUSTVAL              ; calculate timer loading value
+00AD   0081           00303         movwf TMR0                      ; put value into timer
+00AE                  00304 LowImpInt2:
+00AE   1306           00305         bcf PORTB,PWMOUTBIT             ; generate falling edge
+00AF   301D           00306         movlw PWMMAXVAL
+00B0   0091           00307         movwf PWMMAX
+00B1   150C           00308         bsf flag,falege
+                      00309         
+00B2   1D0C           00310         btfss flag,falege
+00B3   28E7           00311         goto intret
+00B4   110C           00312         bcf flag,falege
+00B5   1A06           00313         btfsc PORTB,KEY                 ;
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE  7
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+00B6   0194           00314         clrf KEYPRESS
+00B7   0A94           00315         incf KEYPRESS,f
+00B8   0A9C           00316         incf ddelay1,f
+00B9   1F9C           00317         btfss ddelay1,7
+00BA   28BE           00318         goto nextl
+00BB   0A9B           00319         incf ddelay,f
+00BC   0A92           00320         incf COUNTER,f
+00BD   019C           00321         clrf ddelay1
+00BE                  00322 nextl:
+00BE   198C           00323         btfsc flag,standby
+00BF   2878           00324         goto NOTON
+00C0   120C           00325         bcf flag,flash
+00C1   1586           00326         bsf PORTB,LED
+00C2   1683           00327         bsf STATUS,RP0
+00C3   3011           00328         movlw TRISBVAL
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+00C4   0086           00329         movwf TRISB
+00C5   1283           00330         bcf STATUS,RP0
+00C6   1006           00331         bcf PORTB,EN3525
+00C7   1505           00332         bsf PORTA,POWERON
+00C8   108B           00333         bcf INTCON,INTF
+00C9   160B           00334         bsf INTCON,INTE
+00CA   0B93           00335         decfsz times,f                  ;50Hz Waveform gen
+00CB   28E7           00336         goto intret
+00CC   1C0C           00337         btfss flag,polarity             ;positive or negative
+00CD   28DB           00338         goto neg_gen
+00CE   1C8C           00339         btfss flag,edge                 ;rising edge or falling edge
+00CF   28D5           00340         goto fallingedge
+00D0   1686           00341         bsf PORTB,OUTP
+00D1   301B           00342         movlw hightimes
+00D2   0093           00343         movwf times
+00D3   108C           00344         bcf flag,edge
+00D4   28E7           00345         goto intret
+00D5                  00346 fallingedge:
+00D5   1286           00347         bcf PORTB,OUTP
+00D6   300C           00348         movlw lowtimes
+00D7   0093           00349         movwf times
+00D8   148C           00350         bsf flag,edge
+00D9   100C           00351         bcf flag,polarity
+00DA   28E7           00352         goto intret
+00DB                  00353 neg_gen:
+00DB   1C8C           00354         btfss flag,edge
+00DC   28E2           00355         goto falledge
+00DD   1786           00356         bsf PORTB,OUTN
+00DE   301B           00357         movlw hightimes
+00DF   0093           00358         movwf times
+00E0   108C           00359         bcf flag,edge
+00E1   28E7           00360         goto intret
+00E2                  00361 falledge:
+00E2   1386           00362         bcf PORTB,OUTN
+00E3   300C           00363         movlw lowtimes
+00E4   0093           00364         movwf times
+00E5   148C           00365         bsf flag,edge
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE  8
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+00E6   140C           00366         bsf flag,polarity
+00E7                  00367 intret: 
+00E7   301D           00368         movlw PWMMAXVAL                 ; "repair" ...
+00E8   0091           00369         movwf PWMMAX                    ; ...support register
+00E9   0E0E           00370         swapf STACKS,W                  ; restore ...
+00EA   0083           00371         movwf STATUS                    ; ...STATUS register
+00EB   0E0D           00372         swapf STACKW,W                  ; restore W register
+00EC   0009           00373         retfie                          ; return to main program
+                      00374 
+00ED                  00375 EXTINT:
+00ED   108B           00376         bcf INTCON,INTF
+00EE   158C           00377         bsf flag,standby
+00EF   1683           00378         bsf STATUS,RP0
+00F0   3010           00379         movlw TRISBVAL1
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+00F1   0086           00380         movwf TRISB
+00F2   120B           00381         bcf INTCON,INTE 
+00F3   1283           00382         bcf STATUS,RP0
+00F4   1105           00383         bcf PORTA,POWERON
+00F5   1406           00384         bsf PORTB,EN3525
+00F6   160C           00385         bsf flag,flash
+00F7   0E0E           00386         swapf STACKS,W
+00F8   0083           00387         movwf STATUS
+00F9   0E0D           00388         swapf STACKW,W
+00FA   0009           00389         retfie
+                      00390 
+00FB                  00391 vtable:                                 ;Temperature comp coefficient table
+00FB   0782           00392         addwf PCL,f
+00FC   3415           00393         retlw .21
+00FD   3414           00394         retlw .20
+00FE   3412           00395         retlw .18
+00FF   3411           00396         retlw .17
+0100   340F           00397         retlw .15
+0101   340D           00398         retlw .13
+0102   340C           00399         retlw .12
+0103   340A           00400         retlw .10
+0104   3408           00401         retlw .8
+0105   3407           00402         retlw .7
+0106   3405           00403         retlw .5
+0107   3404           00404         retlw .4
+0108   3402           00405         retlw .2
+0109   3400           00406         retlw .0
+010A   34FF           00407         retlw .255
+010B   34FD           00408         retlw .253
+010C   34FB           00409         retlw .251
+010D   34FA           00410         retlw .250
+010E   34F8           00411         retlw .248
+010F   34F7           00412         retlw .247
+0110   34F5           00413         retlw .245
+0111   34F3           00414         retlw .243
+0112   34F2           00415         retlw .242
+0113   34F0           00416         retlw .240
+0114   34EE           00417         retlw .238
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE  9
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0115   34ED           00418         retlw .237
+0116   34EB           00419         retlw .235
+0117   34EA           00420         retlw .234
+0118   34E8           00421         retlw .232
+0119   34E6           00422         retlw .230
+011A   34E5           00423         retlw .229
+011B   34E3           00424         retlw .227
+                      00425         
+011C                  00426 outchar:
+011C   3008           00427         movlw 8
+011D   009F           00428         movwf outcount
+011E                  00429 out1:
+011E   0CA0           00430         rrf xmsreg,f
+011F   1C03           00431         btfss STATUS,C
+0120   1106           00432         bcf PORTB,TX
+0121   1803           00433         btfsc STATUS,C
+0122   1506           00434         bsf PORTB,TX
+0123   1186           00435         bcf PORTB,SCK
+0124   1586           00436         bsf PORTB,SCK
+0125   0B9F           00437         decfsz outcount,f
+0126   291E           00438         goto out1
+0127   0008           00439         return
+                      00440 
+0128                  00441 table:
+0128   0782           00442         addwf 2,f
+0129   3403           00443         retlw 3
+012A   349F           00444         retlw 0x9f
+012B   3425           00445         retlw 0x25
+012C   340D           00446         retlw 0xd
+012D   3499           00447         retlw 0x99
+012E   3449           00448         retlw 0x49
+012F   3441           00449         retlw 0x41
+0130   341F           00450         retlw 0x1f
+0131   3401           00451         retlw 1
+0132   3409           00452         retlw 9
+0133   3411           00453         retlw 0x11
+0134   34C1           00454         retlw 0xc1
+0135   3463           00455         retlw 0x63
+0136   3485           00456         retlw 0x85
+0137   3461           00457         retlw 0x61
+0138   3471           00458         retlw 0x71
+                      00459         
+                      00460         
+0139                  00461 display:
+0139   3000           00462         movlw 0
+013A   2128           00463         call table
+013B   00A0           00464         movwf xmsreg
+013C   211C           00465         call outchar
+013D   211C           00466         call outchar
+013E   300F           00467         movlw 0xf
+013F   0518           00468         andwf sumhi,w
+0140   2128           00469         call table
+0141   00A0           00470         movwf xmsreg
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE 10
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0142   211C           00471         call outchar
+0143   0E98           00472         swapf sumhi,f
+0144   300F           00473         movlw 0xf
+0145   0518           00474         andwf sumhi,w
+0146   2128           00475         call table
+0147   00A0           00476         movwf xmsreg
+0148   211C           00477         call outchar
+0149   0008           00478         return
+                      00479         
+                      00480         
+014A                  00481 adc:
+014A   0197           00482         clrf adtimes
+014B   0198           00483         clrf sumhi
+014C   0199           00484         clrf sumlo
+014D   0088           00485         movwf ADCON0
+014E   0064           00486         clrwdt
+014F   0064           00487         clrwdt
+0150   0064           00488         clrwdt
+0151   0064           00489         clrwdt
+0152                  00490 WaitNoInt:
+0152   0801           00491         movf TMR0,W
+0153   0801           00492         movf TMR0,w
+0154   0801           00493         movf TMR0,W
+0155   0801           00494         movf TMR0,w
+0156   0064           00495         clrwdt
+0157   0064           00496         clrwdt
+0158   0064           00497         clrwdt
+0159   0064           00498         clrwdt
+015A   1508           00499         bsf ADCON0,GO
+015B                  00500 WaitAdc:
+015B   1908           00501         btfsc ADCON0,GO
+015C   295B           00502         goto WaitAdc
+015D   0809           00503         movf ADRES,W
+015E   0799           00504         addwf sumlo,f
+015F   1803           00505         btfsc STATUS,C
+0160   0A98           00506         incf sumhi,f
+0161   0F97           00507         incfsz adtimes,f
+0162   2952           00508         goto WaitNoInt
+0163   0008           00509         return
+                      00510 
+                      00511 
+                      00512 
+0164                  00513 SLP:
+0164   1F94           00514         btfss KEYPRESS,7        ;reach 128?
+0165   0008           00515         return          ;No
+0166   0194           00516         clrf KEYPRESS
+0167   0A9E           00517         incf keypress2,f
+0168   1E1E           00518         btfss keypress2,4
+0169   0008           00519         return
+016A   019E           00520         clrf keypress2
+016B   198C           00521         btfsc flag,standby
+016C   296F           00522         goto goon
+016D   158C           00523         bsf flag,standby
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE 11
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+016E   0008           00524         return
+016F                  00525 goon:   
+016F   118C           00526         bcf flag,standby
+0170   0008           00527         return
+                      00528 
+                      00529 
+                      00530 
+0171                  00531 begin:
+0171   1683           00532         bsf STATUS,RP0                  ;Page 1
+0172   3003           00533         MOVLW TRISAVAL
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0173   0085           00534         movwf TRISA
+0174   3011           00535         movlw TRISBVAL
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0175   0086           00536         movwf TRISB
+0176   3002           00537         movlw ADCON1VAL
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0177   0088           00538         movwf ADCON1
+0178   30C8           00539         movlw OPTIONVAL
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0179   0081           00540         movwf OPTION_REG
+017A   1283           00541         bcf STATUS,RP0                  ;Page 0
+017B   3000           00542         movlw 0x0
+017C   0086           00543         movwf PORTB
+017D   1486           00544         bsf PORTB,LEDG
+017E   30FF           00545         movlw .255
+017F   008F           00546         movwf PWMDESIRED
+0180   301D           00547         movlw PWMMAXVAL
+0181   0091           00548         movwf PWMMAX
+0182   30B0           00549         movlw INTCONVAL
+0183   008B           00550         movwf INTCON
+                      00551 ;       bsf flag,standby
+0184   018C           00552         clrf flag
+0185                  00553 idle:
+0185   0064           00554         clrwdt
+0186   1E0C           00555         btfss flag,flash
+0187   298D           00556         goto noflash
+0188   1E92           00557         btfss COUNTER,5                 ;32ms*32
+0189   298C           00558         goto die
+018A   1586           00559         bsf PORTB,LED
+                      00560 ;       clrf COUNTER
+018B   298D           00561         goto noflash
+018C                  00562 die:
+018C   1186           00563         bcf PORTB,LED
+                      00564 ;       clrf COUNTER
+018D                  00565 noflash:
+018D   2164           00566         call SLP
+018E   3081           00567         movlw ADCON0VAL
+018F   214A           00568         call adc                ;voltage sample
+0190   0818           00569         movf sumhi,w
+0191   009A           00570         movwf voltage
+                      00571 ;       movlw ADCON0VAL1
+                      00572 ;       call adc                ;temperature sample
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE 12
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00573 ;       bcf STATUS,C
+                      00574 ;       rrf sumhi,f
+                      00575 ;       bcf STATUS,C
+                      00576 ;       rrf sumhi,f
+                      00577 ;       bcf STATUS,C
+                      00578 ;       rrf sumhi,w             ;div by 8
+                      00579 ;       call vtable
+                      00580 ;       addwf voltage,f
+0192   2164           00581         call SLP
+                      00582 ;       call display
+0193   308C           00583         movlw LVD
+0194   021A           00584         subwf voltage,w
+0195   1C03           00585         btfss STATUS,C
+0196   29A5           00586         goto isLVD
+0197   30B7           00587         movlw HVD
+0198   021A           00588         subwf voltage,w
+0199   1803           00589         btfsc STATUS,C
+019A   29E0           00590         goto isHVD
+019B   309A           00591         movlw midvol
+019C   021A           00592         subwf voltage,w
+019D   1C03           00593         btfss STATUS,C
+019E   29B4           00594         goto isMID
+019F   30AE           00595         movlw recon
+01A0   021A           00596         subwf voltage,w
+01A1   1C03           00597         btfss STATUS,C
+01A2   29D0           00598         goto isrecon
+01A3   29C2           00599         goto isHI
+01A4   2985           00600         goto idle
+                      00601 
+01A5                  00602 isLVD:
+01A5   081D           00603         movf delaytype,w
+01A6   3A8C           00604         xorlw LVD
+01A7   1D03           00605         btfss STATUS,Z
+01A8   29B0           00606         goto LVDset
+01A9   1F9B           00607         btfss ddelay,7
+01AA   2985           00608         goto idle
+01AB   158C           00609         bsf flag,standby
+01AC   1086           00610         bcf PORTB,LEDG
+01AD   1506           00611         bsf PORTB,LEDR
+01AE   019B           00612         clrf ddelay
+01AF   2985           00613         goto idle
+01B0                  00614 LVDset:
+01B0   308C           00615         movlw LVD
+01B1   009D           00616         movwf delaytype
+01B2   019B           00617         clrf ddelay
+01B3   2985           00618         goto idle
+                      00619         
+                      00620         
+01B4                  00621 isMID:
+01B4   081D           00622         movf delaytype,w
+01B5   3A9A           00623         xorlw midvol
+01B6   1D03           00624         btfss STATUS,Z
+01B7   29BE           00625         goto midset
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE 13
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+01B8   1C9B           00626         btfss ddelay,1
+01B9   2985           00627         goto idle
+01BA   1506           00628         bsf PORTB,LEDR
+01BB   1486           00629         bsf PORTB,LEDG
+01BC   019B           00630         clrf ddelay
+01BD   2985           00631         goto idle
+01BE                  00632 midset:
+01BE   309A           00633         movlw midvol
+01BF   009D           00634         movwf delaytype
+01C0   019B           00635         clrf ddelay
+01C1   2985           00636         goto idle
+                      00637         
+01C2                  00638 isHI:
+01C2   081D           00639         movf  delaytype,w 
+01C3   3AA9           00640         xorlw hivol
+01C4   1D03           00641         btfss STATUS,Z
+01C5   29CC           00642         goto hiset
+01C6   1C9B           00643         btfss ddelay,1
+01C7   2985           00644         goto idle
+01C8   1486           00645         bsf PORTB,LEDG
+01C9   1106           00646         bcf PORTB,LEDR
+01CA   019B           00647         clrf ddelay
+01CB   2985           00648         goto idle
+01CC                  00649 hiset:
+01CC   081D           00650         movf delaytype,w
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+01CD   00A9           00651         movwf hivol
+01CE   019B           00652         clrf ddelay
+01CF   2985           00653         goto idle
+                      00654         
+01D0                  00655 isrecon:
+01D0   081D           00656         movf delaytype,w
+01D1   3AAE           00657         xorlw recon
+01D2   1D03           00658         btfss STATUS,Z
+01D3   29DC           00659         goto reconset
+01D4   1F9B           00660         btfss ddelay,7
+01D5   2985           00661         goto idle
+01D6   30FF           00662         movlw .255
+01D7   008F           00663         movwf PWMDESIRED
+                      00664 ;       clrf PWMDESIRED
+01D8   019B           00665         clrf ddelay
+01D9   1106           00666         bcf PORTB,LEDR
+01DA   1486           00667         bsf PORTB,LEDG
+01DB   2985           00668         goto idle
+01DC                  00669 reconset:
+01DC   30AE           00670         movlw recon
+01DD   009D           00671         movwf delaytype
+01DE   019B           00672         clrf ddelay
+01DF   2985           00673         goto idle
+                      00674         
+01E0                  00675 isHVD:
+01E0   081D           00676         movf delaytype,w
+01E1   3AB7           00677         xorlw HVD
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE 14
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+01E2   1D03           00678         btfss STATUS,Z
+01E3   29EE           00679         goto HVDset
+01E4   1F9B           00680         btfss ddelay,7
+01E5   2985           00681         goto idle
+01E6   1486           00682         bsf PORTB,LEDG
+01E7   1106           00683         bcf PORTB,LEDR
+01E8   080F           00684         movf PWMDESIRED,w
+01E9   1D03           00685         btfss STATUS,Z
+01EA   030F           00686         decf PWMDESIRED,w
+01EB   008F           00687         movwf PWMDESIRED
+01EC   019B           00688         clrf ddelay
+01ED   2985           00689         goto idle
+01EE                  00690 HVDset:
+01EE   30B7           00691         movlw HVD
+01EF   009D           00692         movwf delaytype
+01F0   019B           00693         clrf ddelay
+01F1   2985           00694         goto idle
+                      00695         
+                      00696         end
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE 15
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+ADCON0                            00000008
+ADCON0VAL                         00000081
+ADCON0VAL1                        00000089
+ADCON1                            00000088
+ADCON1VAL                         00000002
+ADCS0                             00000006
+ADCS1                             00000007
+ADIE                              00000006
+ADIF                              00000001
+ADON                              00000000
+ADRES                             00000009
+C                                 00000000
+CHS0                              00000003
+CHS1                              00000004
+COUNTER                           00000012
+DC                                00000001
+EN3525                            00000000
+EXTINT                            000000ED
+F                                 00000001
+FSR                               00000004
+GIE                               00000007
+GO                                00000002
+GO_DONE                           00000002
+HVD                               000000B7
+HVDset                            000001EE
+HighImpInt                        0000003A
+HighImpInt2                       0000003C
+HighImpShrt                       00000016
+Highpulse                         00000011
+INDF                              00000000
+INTCON                            0000000B
+INTCONVAL                         000000B0
+INTE                              00000004
+INTEDG                            00000006
+INTF                              00000001
+IRP                               00000007
+KEY                               00000004
+KEYPRESS                          00000014
+LED                               00000003
+LEDG                              00000001
+LEDR                              00000002
+LVD                               0000008C
+LVDset                            000001B0
+LowImpInt                         000000AC
+LowImpInt2                        000000AE
+LowImpShrt                        00000088
+Lowpulse                          00000084
+NOTON                             00000078
+NOT_BO                            00000000
+NOT_BOR                           00000000
+NOT_DONE                          00000002
+NOT_PD                            00000003
+NOT_POR                           00000001
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE 16
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+NOT_RBPU                          00000007
+NOT_TO                            00000004
+OPTIONVAL                         000000C8
+OPTION_REG                        00000081
+OUTN                              00000007
+OUTP                              00000005
+PCFG0                             00000000
+PCFG1                             00000001
+PCL                               00000002
+PCLATH                            0000000A
+PCON                              00000087
+PORTA                             00000005
+PORTB                             00000006
+POWERON                           00000002
+PS0                               00000000
+PS1                               00000001
+PS2                               00000002
+PSA                               00000003
+PWMADJUSTVAL                      00000014
+PWMDESIRED                        0000000F
+PWMHELP                           00000010
+PWMMAX                            00000011
+PWMMAXVAL                         0000001D
+PWMOUTBIT                         00000006
+PwmInt                            00000006
+RBIE                              00000003
+RBIF                              00000000
+RP0                               00000005
+RP1                               00000006
+SCK                               00000003
+SLP                               00000164
+STACKS                            0000000E
+STACKW                            0000000D
+STATUS                            00000003
+T0CS                              00000005
+T0IE                              00000005
+T0IF                              00000002
+T0INT                             0000000E
+T0SE                              00000004
+TMR0                              00000001
+TRISA                             00000085
+TRISAVAL                          00000003
+TRISB                             00000086
+TRISBVAL                          00000011
+TRISBVAL1                         00000010
+TX                                00000002
+W                                 00000000
+WaitAdc                           0000015B
+WaitNoInt                         00000152
+Z                                 00000002
+_BODEN_OFF                        00003FBF
+_BODEN_ON                         00003FFF
+_CP_OFF                           00003FFF
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE 17
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+_CP_ON                            0000004F
+_HS_OSC                           00003FFE
+_LP_OSC                           00003FFC
+_PWRTE_OFF                        00003FFF
+_PWRTE_ON                         00003FF7
+_RC_OSC                           00003FFF
+_WDT_OFF                          00003FFB
+_WDT_ON                           00003FFF
+_XT_OSC                           00003FFD
+__16C711                          00000001
+adc                               0000014A
+adtimes                           00000017
+begin                             00000171
+ddelay                            0000001B
+ddelay1                           0000001C
+delaytype                         0000001D
+die                               0000018C
+display                           00000139
+edge                              00000001
+falege                            00000002
+falledge                          000000E2
+falledgeh                         0000006F
+fallingedge                       000000D5
+fallingedgeh                      00000062
+flag                              0000000C
+flash                             00000004
+goon                              0000016F
+hightimes                         0000001B
+hiset                             000001CC
+hivol                             000000A9
+idle                              00000185
+intret                            000000E7
+intreth                           00000074
+isHI                              000001C2
+isHVD                             000001E0
+isLVD                             000001A5
+isMID                             000001B4
+isrecon                           000001D0
+keypress2                         0000001E
+lowtimes                          0000000C
+midset                            000001BE
+midvol                            0000009A
+neg_gen                           000000DB
+neg_genh                          00000068
+nexth                             0000004B
+nextl                             000000BE
+noflash                           0000018D
+out1                              0000011E
+outchar                           0000011C
+outcount                          0000001F
+polarity                          00000000
+recon                             000000AE
+reconset                          000001DC
+MPASM 02.61 Released               V3.ASM   11-17-2000  1:09:54         PAGE 18
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+standby                           00000003
+sumhi                             00000018
+sumlo                             00000019
+table                             00000128
+times                             00000013
+voltage                           0000001A
+vtable                            000000FB
+xmsreg                            00000020
+
+
+MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
+
+0000 : X---XXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0040 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0080 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+00C0 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0100 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0140 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0180 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+01C0 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XX--------------
+
+All other memory blocks unused.
+
+Program Memory Words Used:   495
+Program Memory Words Free:   529
+
+
+Errors   :     0
+Warnings :     0 reported,     0 suppressed
+Messages :     9 reported,     0 suppressed
+
+

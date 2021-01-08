@@ -1,0 +1,757 @@
+
+**** 01/20/01 02:03:05 ********* PSpice 9.1 (Mar 1999) ******** ID# 0 ********
+
+ ** circuit file for profile: 3525 
+
+
+ ****     CIRCUIT DESCRIPTION
+
+
+******************************************************************************
+
+
+
+
+** WARNING: THIS AUTOMATICALLY GENERATED FILE MAY BE OVERWRITTEN BY SUBSEQUENT PROFILES
+
+*Libraries: 
+* Local Libraries :
+* From [PSPICE NETLIST] section of pspice91.ini file:
+.lib "D:\my_lib\orcad.lib" 
+.lib "nom.lib" 
+
+*Analysis directives: 
+.TRAN  0 200u 0 
+.OPTIONS ABSTOL= 10.0p
+.OPTIONS ITL1= 1500
+.OPTIONS ITL2= 200
+.OPTIONS ITL4= 1000
+.OPTIONS VNTOL= 10.0u
+.PROBE 
+.INC "transformer-SCHEMATIC1.net" 
+
+
+**** INCLUDING transformer-SCHEMATIC1.net ****
+* source TRANSFORMER
+L_L3         N13677 N11699  50mH  
+C_C8         N06849 N166461  100n  
+M_M1         N06903 N12971 0 0 IRFZ44
+D_D1         N13677 N15990 MBR2540 
+R_R1         N00044 N12971  51  
+R_R2         N00050 N12966  51  
+C_C7         N166650 N06903  100n  
+Kn_K1         L_L1 L_L2 
++ L_L3    0.8 
+R_R18         N166650 12V  51  
+R_R19         N166461 12V  51  
+D_D2         N11699 N15990 MBR2540 
+D_D4         0 N11699 MBR2540 
+R_R12         0 N00143  10k  
+R_R11         0 N01577  100k  
+R_R3         0 N00107  5.1k  
+V_V1         12V 0 12Vdc
+R_R4         N00116 N00100  510  
+R_R5         N00143 N00138  6800k  
+R_R7         N00245 0  1.8k  
+R_R8         N00272 N00245  2k  
+C_C1         0 N00100  2.2n  
+C_C2         N00143 N00138  1n  
+C_C3         0 N00128  1n  
+D_D3         0 N13677 MBR2540 
+L_L1         12V N06903  1000uH  
+L_L2         N06849 12V  1000uH  
+M_M2         N06849 N12966 0 0 IRFZ44
+X_U1         N00143 N00245 N01577 N00100 N00128 N00138 0 N00044 0 12V N00050
++  12V N00272 SG1525 
++ PARAMS: PERIOD=20us DEADTIME=1us
+R_R17         N12966 0  100  
+R_R16         0 N12971  100  
+R_R9         N00272 N00143  15k  
+C_C6         0 N15990  100uF  
+** Floating/unmodeled pin fixups **
+R__UC0001   N00107  0   {1/GMIN}
+R__UC0002   N00116  0   {1/GMIN}
+
+**** RESUMING transformer-schematic1-3525.sim.cir ****
+.INC "transformer-SCHEMATIC1.als"
+
+
+
+**** INCLUDING transformer-SCHEMATIC1.als ****
+.ALIASES
+L_L3            L3(1=N13677 2=N11699 )
+C_C8            C8(1=N06849 2=N166461 )
+M_M1            M1(d=N06903 g=N12971 s=0 s=0 )
+D_D1            D1(1=N13677 2=N15990 )
+R_R1            R1(1=N00044 2=N12971 )
+R_R2            R2(1=N00050 2=N12966 )
+C_C7            C7(1=N166650 2=N06903 )
+Kn_K1            K1()
+R_R18           R18(1=N166650 2=12V )
+R_R19           R19(1=N166461 2=12V )
+D_D2            D2(1=N11699 2=N15990 )
+D_D4            D4(1=0 2=N11699 )
+R_R12           R12(1=0 2=N00143 )
+R_R11           R11(1=0 2=N01577 )
+R_R3            R3(1=0 2=N00107 )
+V_V1            V1(+=12V -=0 )
+R_R4            R4(1=N00116 2=N00100 )
+R_R5            R5(1=N00143 2=N00138 )
+R_R7            R7(1=N00245 2=0 )
+R_R8            R8(1=N00272 2=N00245 )
+C_C1            C1(1=0 2=N00100 )
+C_C2            C2(1=N00143 2=N00138 )
+C_C3            C3(1=0 2=N00128 )
+D_D3            D3(1=0 2=N13677 )
+L_L1            L1(1=12V 2=N06903 )
+L_L2            L2(1=N06849 2=12V )
+M_M2            M2(d=N06849 g=N12966 s=0 s=0 )
+X_U1            U1(ERR-=N00143 ERR+=N00245 OSC=N01577 CT=N00100 START=N00128
++  COMP=N00138 SHUT=0 OUTA=N00044 GND=0 C=12V OUTB=N00050 VIN=12V VREF=N00272 )
+R_R17           R17(1=N12966 2=0 )
+R_R16           R16(1=0 2=N12971 )
+R_R9            R9(1=N00272 2=N00143 )
+C_C6            C6(1=0 2=N15990 )
+_    _(12V=12V)
+_    _(12V=12V)
+.ENDALIASES
+
+**** RESUMING transformer-schematic1-3525.sim.cir ****
+.END
+
+
+**** Generated AtoD and DtoA Interfaces ****
+
+*
+* Analog/Digital interface for node 0
+*
+* Moving X_U1.uinvds1:IN1 from analog node 0 to new digital node 0$AtoD
+X$0_AtoD1
++ 0
++ 0$AtoD
++ X_U1.DPWR
++ X_U1.DGND
++ AtoD_STD
++       PARAMS: CAPACITANCE=   0     
+*
+* Analog/Digital interface for node N01577
+*
+* Moving X_U1.u99:OUT1 from analog node N01577 to new digital node N01577$DtoA
+X$N01577_DtoA1
++ N01577$DtoA
++ N01577
++ X_U1.DPWR
++ X_U1.DGND
++ DtoA_STD
++       PARAMS: DRVH=  96.4   DRVL= 104    CAPACITANCE=   0     
+*
+* Analog/Digital interface for node X_U1.7114
+*
+* Moving X_U1.u4:OUT1 from analog node X_U1.7114 to new digital node X_U1.7114$DtoA
+X$X_U1.7114_DtoA1
++ X_U1.7114$DtoA
++ X_U1.7114
++ X_U1.DPWR
++ X_U1.DGND
++ dtoa_s_o1
++       PARAMS: DRVH=   1.0000E+06 DRVL=  60.6   CAPACITANCE=   0     
+*
+* Analog/Digital interface for node X_U1.7113
+*
+* Moving X_U1.u3:OUT1 from analog node X_U1.7113 to new digital node X_U1.7113$DtoA
+X$X_U1.7113_DtoA1
++ X_U1.7113$DtoA
++ X_U1.7113
++ X_U1.DPWR
++ X_U1.DGND
++ dtoa_s_o1
++       PARAMS: DRVH=   1.0000E+06 DRVL=  60.6   CAPACITANCE=   0     
+*
+* Analog/Digital interface for node X_U1.7111
+*
+* Moving X_U1.u1:OUT1 from analog node X_U1.7111 to new digital node X_U1.7111$DtoA
+X$X_U1.7111_DtoA1
++ X_U1.7111$DtoA
++ X_U1.7111
++ X_U1.DPWR
++ X_U1.DGND
++ dtoa_s_o1
++       PARAMS: DRVH=   1.0000E+06 DRVL=  60.6   CAPACITANCE=   0     
+*
+* Analog/Digital interface for node X_U1.7112
+*
+* Moving X_U1.u2:OUT1 from analog node X_U1.7112 to new digital node X_U1.7112$DtoA
+X$X_U1.7112_DtoA1
++ X_U1.7112$DtoA
++ X_U1.7112
++ X_U1.DPWR
++ X_U1.DGND
++ dtoa_s_o1
++       PARAMS: DRVH=   1.0000E+06 DRVL=  60.6   CAPACITANCE=   0     
+*
+* Analog/Digital interface for node X_U1.x16.3
+*
+* Moving X_U1.x16.u1:OUT1 from analog node X_U1.x16.3 to new digital node X_U1.x16.3$DtoA
+X$X_U1.x16.3_DtoA1
++ X_U1.x16.3$DtoA
++ X_U1.x16.3
++ X_U1.DPWR
++ X_U1.DGND
++ DtoA_STD
++       PARAMS: DRVH=  96.4   DRVL= 104    CAPACITANCE=   0     
+*
+* Analog/Digital interface power supply subcircuits
+*
+
+X$DIGIFPWR 0 DIGIFPWR
+
+**** 01/20/01 02:03:05 ********* PSpice 9.1 (Mar 1999) ******** ID# 0 ********
+
+ ** circuit file for profile: 3525 
+
+
+ ****     Diode MODEL PARAMETERS
+
+
+******************************************************************************
+
+
+
+
+               MBR2540         X_U1.x4.dx      X_U1.x1.x1.dx   D74CLMP         
+          IS   21.000000E-06  100.000000E-21  100.000000E-15    1.000000E-15 
+         ISR    1.176000E-03                                                 
+         IKF   69.6                                                          
+          BV                                  100                            
+         IBV                                  100.000000E-15                 
+          RS    5.011000E-03    1              16               2            
+          TT                                   12.000000E-09                 
+         CJO    3.507000E-09                    2.000000E-12    2.000000E-12 
+          VJ     .75                                                         
+           M     .5031                                                       
+         XTI    0                                                            
+
+
+               D74             
+          IS  100.000000E-18 
+          RS   25            
+         CJO    2.000000E-12 
+
+
+**** 01/20/01 02:03:05 ********* PSpice 9.1 (Mar 1999) ******** ID# 0 ********
+
+ ** circuit file for profile: 3525 
+
+
+ ****     BJT MODEL PARAMETERS
+
+
+******************************************************************************
+
+
+
+
+               X_U1.q_pwm1     X_U1.x16.shutmod                Q74             
+               NPN             NPN                             NPN             
+          IS    1.340000E-15  100.000000E-18                  100.000000E-18 
+          BF   65.62           50                              49            
+          NF    1               1                               1            
+         IKF     .5385                       
+         ISE                  100.000000E-18 
+          BR    1               1                                .03         
+          NR    1               1                               1            
+         ISC                  400.000000E-18 
+          RB   10              50            
+          RC    9              20            
+         CJE    2.010000E-12    1.000000E-12 
+         VJE                     .9          
+         MJE     .377            .5          
+         CJC    1.393000E-12  500.000000E-15 
+         VJC                     .8          
+         MJC     .3416                       
+         CJS                    3.000000E-12 
+         VJS                     .7          
+         MJS                     .33         
+          TF  408.800000E-12  200.000000E-12 
+          TR                   10.000000E-09 
+          CN    2.42            2.42                            2.42         
+           D     .87             .87                             .87         
+
+
+**** 01/20/01 02:03:05 ********* PSpice 9.1 (Mar 1999) ******** ID# 0 ********
+
+ ** circuit file for profile: 3525 
+
+
+ ****     MOSFET MODEL PARAMETERS
+
+
+******************************************************************************
+
+
+
+
+               IRFZ44          
+               NMOS            
+       LEVEL    3            
+           L    2.000000E-06 
+           W    1.6          
+         VTO    3.438        
+          KP   20.250000E-06 
+       GAMMA    0            
+         PHI     .6          
+      LAMBDA    0            
+          RD  716.500000E-06 
+          RS     .01341      
+          RG    3.325        
+         RDS  266.700000E+03 
+          IS  880.400000E-12 
+          JS    0            
+          PB     .8          
+        PBSW     .8          
+         CBD    5.477000E-09 
+          CJ    0            
+        CJSW    0            
+          TT  103.000000E-09 
+        CGSO  132.400000E-12 
+        CGDO    1.431000E-09 
+        CGBO    0            
+         TOX  100.000000E-09 
+          XJ    0            
+       UCRIT   10.000000E+03 
+       DELTA    0            
+         ETA    0            
+      DIOMOD    1            
+         VFB    0            
+        LETA    0            
+        WETA    0            
+          U0    0            
+        TEMP    0            
+         VDD    0            
+       XPART    0            
+
+
+**** 01/20/01 02:03:05 ********* PSpice 9.1 (Mar 1999) ******** ID# 0 ********
+
+ ** circuit file for profile: 3525 
+
+
+ ****     Voltage Controlled Switch MODEL PARAMETERS
+
+
+******************************************************************************
+
+
+
+
+               X_U1.x1.sonlo   X_U1.x1.sonhi   X_U1.x1.smod    
+         RON    1               1               1            
+        ROFF  100.000000E+06  100.000000E+06  100.000000E+06 
+         VON    2.4             2.6             5.1          
+        VOFF    2.6             2.4             5            
+
+
+               X_U1.x1.sw_topen 
+         RON    1            
+        ROFF   10.000000E+06 
+         VON     .9          
+        VOFF     .1          
+
+
+**** 01/20/01 02:03:05 ********* PSpice 9.1 (Mar 1999) ******** ID# 0 ********
+
+ ** circuit file for profile: 3525 
+
+
+ ****     Current Controlled Switch MODEL PARAMETERS
+
+
+******************************************************************************
+
+
+
+
+               X_U1.sw         
+         RON    1            
+        ROFF  100.000000E+06 
+         ION     .4          
+        IOFF     .35         
+
+
+**** 01/20/01 02:03:05 ********* PSpice 9.1 (Mar 1999) ******** ID# 0 ********
+
+ ** circuit file for profile: 3525 
+
+
+ ****     Digital Input MODEL PARAMETERS
+
+
+******************************************************************************
+
+
+
+
+               DIN74           din74s_o1       
+        FILE DSO_DTOA        DSO_DTOA        
+      FORMAT    6               6            
+    TIMESTEP  100.000000E-12  100.000000E-12 
+         CLO                    1.000000E-12 
+         CHI                    1.000000E-12 
+      S0NAME 0               0               
+       S0TSW    3.500000E-09  100.000000E-12 
+       S0RLO    7.13             .1          
+       S0RHI  389              10.000000E+03 
+      S1NAME 1               1               
+       S1TSW    5.500000E-09  100.000000E-12 
+       S1RLO  467             200.000000E+03 
+       S1RHI  200             200.000000E+03 
+      S2NAME X               x               
+       S2TSW    3.500000E-09  100.000000E-12 
+       S2RLO   42.9            34.6          
+       S2RHI  116              98.4          
+      S3NAME R               z               
+       S3TSW    3.500000E-09  100.000000E-12 
+       S3RLO   42.9           200.000000E+03 
+       S3RHI  116             200.000000E+03 
+      S4NAME F               R               
+       S4TSW    3.500000E-09  100.000000E-12 
+       S4RLO   42.9            34.6          
+       S4RHI  116              98.4          
+      S5NAME Z               F               
+       S5TSW    3.500000E-09  100.000000E-12 
+       S5RLO  200.000000E+03   34.6          
+       S5RHI  200.000000E+03   98.4          
+
+
+**** 01/20/01 02:03:05 ********* PSpice 9.1 (Mar 1999) ******** ID# 0 ********
+
+ ** circuit file for profile: 3525 
+
+
+ ****     Digital Output MODEL PARAMETERS
+
+
+******************************************************************************
+
+
+
+
+               X_U1.uvl        X_U1.x15.cmp    X_U1.x1.compmod DO74            
+        FILE DSO_ATOD        DSO_ATOD        DSO_ATOD        DSO_ATOD        
+      FORMAT    6               6               6               6            
+     CHGONLY    1               1               1               1            
+    TIMESTEP  100.000000E-12  100.000000E-12  100.000000E-12  100.000000E-12 
+      S0NAME 0               0               0               X               
+       S0VHI   50                                               2            
+       S0VLO    7             -20.000000E+03  -15                .8          
+      S1NAME 1               1               1               0               
+       S1VHI    7.2            20.000000E+03    7                .8          
+       S1VLO                                                   -1.5          
+      S2NAME                                                 R               
+       S2VHI                                                    1.4          
+       S2VLO                                                     .8          
+      S3NAME                                                 R               
+       S3VHI                                                    2            
+       S3VLO                                                    1.3          
+      S4NAME                                                 X               
+       S4VHI                                                    2            
+       S4VLO                                                     .8          
+      S5NAME                                                 1               
+       S5VHI                                                    7            
+       S5VLO                                                    2            
+      S6NAME                                                 F               
+       S6VHI                                                    2            
+       S6VLO                                                    1.3          
+      S7NAME                                                 F               
+       S7VHI                                                    1.4          
+       S7VLO                                                     .8          
+
+
+**** 01/20/01 02:03:05 ********* PSpice 9.1 (Mar 1999) ******** ID# 0 ********
+
+ ** circuit file for profile: 3525 
+
+
+ ****     Digital Gate MODEL PARAMETERS
+
+
+******************************************************************************
+
+
+
+
+               X_U1.dshutd     X_U1.delgate    d0_gate         d_00            
+      TPLHMN  800.000000E-12   24.000000E-09    0               4.400000E-09 
+      TPLHTY    2.000000E-09   60.000000E-09    0              11.000000E-09 
+      TPLHMX    3.200000E-09   95.999990E-09    0              22.000000E-09 
+      TPHLMN  800.000000E-12   24.000000E-09    0               2.800000E-09 
+      TPHLTY    2.000000E-09   60.000000E-09    0               7.000000E-09 
+      TPHLMX    3.200000E-09   95.999990E-09    0              15.000000E-09 
+
+
+**** 01/20/01 02:03:05 ********* PSpice 9.1 (Mar 1999) ******** ID# 0 ********
+
+ ** circuit file for profile: 3525 
+
+
+ ****     Digital Edge Triggered FF MODEL PARAMETERS
+
+
+******************************************************************************
+
+
+
+
+               d0_eff          
+  TPCLKQLHMN    0            
+  TPCLKQLHTY    0            
+  TPCLKQLHMX    0            
+  TPCLKQHLMN    0            
+  TPCLKQHLTY    0            
+  TPCLKQHLMX    0            
+   TPPCQLHMN    0            
+   TPPCQLHTY    0            
+   TPPCQLHMX    0            
+   TPPCQHLMN    0            
+   TPPCQHLTY    0            
+   TPPCQHLMX    0            
+    TWCLKLMN    0            
+    TWCLKLTY    0            
+    TWCLKLMX    0            
+    TWCLKHMN    0            
+    TWCLKHTY    0            
+    TWCLKHMX    0            
+     TWPCLMN    0            
+     TWPCLTY    0            
+     TWPCLMX    0            
+   TSUDCLKMN    0            
+   TSUDCLKTY    0            
+   TSUDCLKMX    0            
+ TSUPCCLKHMN    0            
+ TSUPCCLKHTY    0            
+ TSUPCCLKHMX    0            
+    THDCLKMN    0            
+    THDCLKTY    0            
+    THDCLKMX    0            
+  TSUCECLKMN    0            
+  TSUCECLKTY    0            
+  TSUCECLKMX    0            
+   THCECLKMN    0            
+   THCECLKTY    0            
+   THCECLKMX    0            
+
+
+**** 01/20/01 02:03:05 ********* PSpice 9.1 (Mar 1999) ******** ID# 0 ********
+
+ ** circuit file for profile: 3525 
+
+
+ ****     Digital Gated FF MODEL PARAMETERS
+
+
+******************************************************************************
+
+
+
+
+               d0_gff          
+    TPDQLHMN    0            
+    TPDQLHTY    0            
+    TPDQLHMX    0            
+    TPDQHLMN    0            
+    TPDQHLTY    0            
+    TPDQHLMX    0            
+    TPGQLHMN    0            
+    TPGQLHTY    0            
+    TPGQLHMX    0            
+    TPGQHLMN    0            
+    TPGQHLTY    0            
+    TPGQHLMX    0            
+   TPPCQLHMN    0            
+   TPPCQLHTY    0            
+   TPPCQLHMX    0            
+   TPPCQHLMN    0            
+   TPPCQHLTY    0            
+   TPPCQHLMX    0            
+      TWGHMN    0            
+      TWGHTY    0            
+      TWGHMX    0            
+     TWPCLMN    0            
+     TWPCLTY    0            
+     TWPCLMX    0            
+     TSUDGMN    0            
+     TSUDGTY    0            
+     TSUDGMX    0            
+   TSUPCGHMN    0            
+   TSUPCGHTY    0            
+   TSUPCGHMX    0            
+      THDGMN    0            
+      THDGTY    0            
+      THDGMX    0            
+
+
+**** 01/20/01 02:03:05 ********* PSpice 9.1 (Mar 1999) ******** ID# 0 ********
+
+ ** circuit file for profile: 3525 
+
+
+ ****     Digital IO  MODEL PARAMETERS
+
+
+******************************************************************************
+
+
+
+
+               io_std          io_stm          io_dft          io_pwm_oc       
+        DRVL  104               0                              60.6          
+        DRVH   96.4             0                               1.000000E+06 
+       AtoD1 AtoD_STD                        AtoD_STD        atod_s          
+       AtoD2 AtoD_STD_NX                     AtoD_STD_NX     atod_s_nx       
+       AtoD3 AtoD_STD                        AtoD_STD        atod_s_e        
+       AtoD4 AtoD_STD_NX                     AtoD_STD_NX     atod_s_nxe      
+       DtoA1 DtoA_STD        DtoA_STM        DtoA_STD        dtoa_s_o1       
+       DtoA2 DtoA_STD        DtoA_STM        DtoA_STD        dtoa_s_o1       
+       DtoA3 DtoA_STD        DtoA_STM        DtoA_STD        dtoa_s_o1       
+       DtoA4 DtoA_STD        DtoA_STM        DtoA_STD        dtoa_s_o1       
+      TSWHL1    1.511000E-09                                                 
+      TSWHL2    1.487000E-09                                                 
+      TSWHL3    1.511000E-09                                                 
+      TSWHL4    1.487000E-09                                                 
+      TSWLH1    3.517000E-09                                                 
+      TSWLH2    3.564000E-09                                                 
+      TSWLH3    3.517000E-09                                                 
+      TSWLH4    3.564000E-09                                                 
+       TPWRT  100.000000E+03  100.000000E+03  100.000000E+03  100.000000E+03 
+
+
+               io_s_oc         
+        DRVL   60.6          
+        DRVH    1.000000E+06 
+       AtoD1 AtoD_S          
+       AtoD2 AtoD_S_NX       
+       AtoD3 AtoD_S          
+       AtoD4 AtoD_S_NX       
+       DtoA1 DtoA_S_OC       
+       DtoA2 DtoA_S_OC       
+       DtoA3 DtoA_S_OC       
+       DtoA4 DtoA_S_OC       
+      TSWHL1    1.305000E-09 
+      TSWHL2    1.306000E-09 
+      TSWHL3    1.305000E-09 
+      TSWHL4    1.306000E-09 
+      TSWLH1  483.000000E-12 
+      TSWLH2  471.000000E-12 
+      TSWLH3  483.000000E-12 
+      TSWLH4  471.000000E-12 
+       TPWRT  100.000000E+03 
+
+
+**** 01/20/01 02:03:05 ********* PSpice 9.1 (Mar 1999) ******** ID# 0 ********
+
+ ** circuit file for profile: 3525 
+
+
+ ****     INITIAL TRANSIENT SOLUTION       TEMPERATURE =   27.000 DEG C
+
+
+******************************************************************************
+
+
+
+ NODE   VOLTAGE     NODE   VOLTAGE     NODE   VOLTAGE     NODE   VOLTAGE
+
+
+(  12V)   12.0000  (N00044)     .0167 (N00050)     .0167 (N00100)     .9000     
+
+(N00107)    0.0000 (N00116)     .9000 (N00128) 50.06E-06 (N00138)    5.7927     
+
+(N00143)    2.0403 (N00245)    2.4146 (N00272)    5.0985 (N01577)    3.4959     
+
+(N06849)   12.0000 (N06903)   12.0000 (N11699) 2.764E-18 (N12966)     .0110     
+
+(N12971)     .0110 (N13677) 2.764E-18 (N15990) 3.693E-18 ($G_DGND)    0.0000    
+
+($G_DPWR)    5.0000                   (N166461)   12.0000                       
+
+(N166650)   12.0000                   (X_U1.26)    5.1000                       
+
+(X_U1.60)    5.7927                   (X_U1.115)   12.0000                      
+
+(X_U1.731)     .1189                  (X_U1.732)     .1189                      
+
+(X_U1.733)     .7910                  (X_U1.734)     .7910                      
+
+(X_U1.735)   11.0000                  (X_U1.7111)     .1189                     
+
+(X_U1.7112)     .1189                 (X_U1.7113)    4.9650                     
+
+(X_U1.7114)    4.9650                 (X_U1.DGND)    0.0000                     
+
+(X_U1.DPWR)    5.0000                 (X_U1.x1.3)   12.3470                     
+
+(X_U1.x1.4) 50.12E-06                 (X_U1.x1.8)    1.0000                     
+
+(X_U1.x16.3)     .0900                (X_U1.x16.6)     .0900                    
+
+(X_U1.x4.10)    4.9000                (X_U1.x4.20)     .7000                    
+
+(X$0_AtoD1.1)     .0915               (X$0_AtoD1.2)     .0457                   
+
+(X$0_AtoD1.3)     .8277               (X_U1.x1.x1.5)   57.9270                  
+
+(X_U1.x1.x1.10)    4.3000             (X_U1.x1.x1.20)     .7000                 
+
+(X_U1.x15.offs) 100.0E-06             (X_U1.x15.ramp1)     .9000                
+
+(X_U1.x15.pos_neg) 100.0E-06          
+
+
+
+ DGTL NODE : STATE  DGTL NODE : STATE  DGTL NODE : STATE  DGTL NODE : STATE
+
+
+(X_U1.7111$DtoA) : 0                  ( X_U1.78) : 0     ( X_U1.20) : 0         
+
+(X_U1.1110) : 1    ( X_U1.57) : 0     (X_U1.7112$DtoA) : 0                      
+
+(X_U1.100) : 0     (X_U1.2222) : 1    (  0$AtoD) : 0     ( X_U1.21) : 1         
+
+(N01577$DtoA) : 1  ( X_U1.22) : 1     ( X_U1.77) : 1     (X_U1.7113$DtoA) : Z   
+
+( X_U1.51) : 1     (X_U1.101) : 0     (X_U1.1010) : 0    (X_U1.713) : 0         
+
+(X_U1.dclk) : 1    (X_U1.2220) : 0    (X_U1.x16.3$DtoA) : 0                     
+
+(X_U1.7114$DtoA) : Z                  
+
+
+
+
+    VOLTAGE SOURCE CURRENTS
+    NAME         CURRENT
+
+    V_V1        -1.409E-02
+    X_U1.v_clkset  -1.800E-12
+    X_U1.v16    -1.546E-03
+    X_U1.vdrop   4.387E-11
+    X_U1.xdigpwr.VDPWR  -2.917E-02
+    X_U1.xdigpwr.VDGND   1.115E-02
+    X_U1.x15.vser   0.000E+00
+    X_U1.x15.vofset  -1.000E-04
+    X_U1.x4.vt   9.746E-05
+    X_U1.x4.vb   5.093E-12
+    X_U1.x1.v1  -1.000E-12
+    X_U1.x1.x1.vt   4.558E-01
+    X_U1.x1.x1.vb   1.175E-11
+    X$DIGIFPWR.VDPWR  -5.000E-06
+    X$DIGIFPWR.VDGND  -5.000E-06
+
+    TOTAL POWER DISSIPATION  -1.64E+00  WATTS
+
+
+
+          JOB CONCLUDED
+
+          TOTAL JOB TIME           50.65
+
